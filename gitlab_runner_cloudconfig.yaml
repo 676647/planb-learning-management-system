@@ -1,0 +1,41 @@
+#cloud-config
+bootcmd:
+  - cloud-init-per once fetch_docker_gpg curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+  - cloud-init-per once fetch_gitlab_gpg curl -fsSl https://packages.gitlab.com/gpgkey/gpg.key -o /etc/apt/keyrings/gitlab.asc
+apt:
+  preserve_sources_list: true
+  sources:
+    docker.list:
+      source: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $RELEASE stable"
+    gitlab-runner.list:
+      source: "deb [signed-by=/etc/apt/keyrings/gitlab.asc] https://packages.gitlab.com/runner/gitlab-runner/debian $RELEASE main"
+
+chpasswd:
+  expire: false
+  users:
+  - {name: debian, password: password1, type: text} # CHANGE PASSWORD!
+ssh_pwauth: false
+
+
+package_reboot_if_required: true
+package_update: true
+package_upgrade: true
+packages:
+  - yq
+  - docker-ce
+  - containerd.io
+  - gitlab-runner
+
+runcmd:
+  - sudo systemctl start docker
+  - [sudo, gitlab-runner, register,
+    --non-interactive,
+    --url, "https://git.app.uib.no",
+    --executor, docker,
+    --docker-image, "debian-trixie",
+    --name, "my-runner",
+    --token, ""] # insert your runner token here
+  - sudo tomlq -it '.concurrent = 1' /etc/gitlab-runner/config.toml
+  - sudo tomlq -it '.runners[].docker.pull_policy = "if-not-present"' /etc/gitlab-runner/config.toml
+  - sudo tomlq -it '.runners[].docker.allowed_pull_policies = ["always","if-not-present"]' /etc/gitlab-runner/config.toml
+  - sudo systemctl restart gitlab-runner
