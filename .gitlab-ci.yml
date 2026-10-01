@@ -1,0 +1,26 @@
+image: maven:3.9-eclipse-temurin-21
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+# Cacht Maven-Abhängigkeiten, damit der Build schneller geht
+cache:
+  paths:
+    - .m2/repository/
+
+stages:
+  - build
+  - test
+
+build_job:
+  stage: build
+  script:
+    - ./mvnw compile
+
+test_job:
+  stage: test
+  script:
+    - ./mvnw test
+  variables:
+    # for CI-tests (in-memory DB with GitLab-Variables)
+    SPRING_PROFILES_ACTIVE: "test"
