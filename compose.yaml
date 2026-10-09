@@ -1,0 +1,9 @@
+services:
+  web:
+    container_name: learningManagementSystem
+    image: nginx:alpine
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+    restart: unless-stopped
