@@ -7,3 +7,25 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: local
     restart: unless-stopped
+    networks:
+      - learning-management-network
+
+  mongodb:
+    container_name: learningManagementSystemMongo
+    image: mongo:8.0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: learning_management_system
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    networks:
+      - learning-management-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  learning-management-network:
+    driver: bridge
