@@ -19,8 +19,15 @@ build_job:
 
 test_job:
   stage: test
+  services:
+    - name: postgres:17
+      alias: postgres
   script:
     - ./mvnw test
   variables:
-    # for CI-tests (in-memory DB with GitLab-Variables)
-    SPRING_PROFILES_ACTIVE: "test"
+    SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/learning_management_system"
+    SPRING_DATASOURCE_USERNAME: "postgres"
+    SPRING_DATASOURCE_PASSWORD: "postgres"
+    POSTGRES_DB: "learning_management_system"
+    POSTGRES_USER: "postgres"
+    POSTGRES_PASSWORD: "postgres"

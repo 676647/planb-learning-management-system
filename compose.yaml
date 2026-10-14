@@ -10,21 +10,28 @@ services:
     networks:
       - learning-management-network
 
-  mongodb:
-    container_name: learningManagementSystemMongo
-    image: mongo:8.0
+  postgres:
+    container_name: learningManagementSystemPostgres
+    image: postgres:17
     ports:
-      - "27017:27017"
+      - "5432:5432"
     environment:
-      MONGO_INITDB_DATABASE: learning_management_system
+      POSTGRES_DB: learning_management_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - mongodb_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
       - learning-management-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d learning_management_system"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  mongodb_data:
+  postgres_data:
 
 networks:
   learning-management-network:
