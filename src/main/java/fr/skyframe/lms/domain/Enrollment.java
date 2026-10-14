@@ -1,4 +1,4 @@
-package domain;
+package fr.skyframe.lms.domain;
 
 import jakarta.persistence.*;
 

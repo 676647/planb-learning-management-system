@@ -1,10 +1,10 @@
-package domain;
+package fr.skyframe.lms.domain;
 
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

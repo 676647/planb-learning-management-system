@@ -1,4 +1,4 @@
-package domain;
+package fr.skyframe.lms.domain;
 
 public enum Role {
     TEACHER("teacher"),
