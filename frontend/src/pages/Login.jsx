@@ -1,21 +1,49 @@
 import React, { useState } from 'react'; // useState Import hinzugefügt!
 import '../Home.css';
+import '../pages/Dashboard.jsx'
 
-export default function Login() {
+export default function Login({onLoginSuccess}) {
     const [view, setView] = useState('INITIAL');
 
-    // States für die Eingabefelder
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    // Wird aufgerufen, wenn das Login-Formular abgesendet wird
-    const handleLogin = (e) => {
-        e.preventDefault(); // Verhindert das Neuladen der Seite
-        console.log("Login-Versuch mit:", username, password);
-        alert(`Eingeloggt als: ${username}`);
+    // Echte API-Verbindung für den Login
+/*    const handleLogin = async (e) => {
+        e.preventDefault();
+
+        try {
+            // Dies ruft dein Spring Boot Backend auf (Port 8080 ist Standard)
+            const response = await fetch('http://localhost:5173/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                // Das Backend gibt die User-Daten zurück (z.B. Name und ID)
+                const userData = await response.json();
+
+                // Leitet den User zum Dashboard weiter!
+                onLoginSuccess(userData);
+            } else {
+                alert("Falscher Benutzername oder Passwort.");
+            }
+        } catch (error) {
+            console.error("Fehler bei der Verbindung zum Server:", error);
+            alert("Backend nicht erreichbar. Läuft Spring Boot?");
+        }
     };
 
-    // Wird aufgerufen, wenn das Registrierungs-Formular abgesendet wird
+ */
+
+    //Mocking
+    const handleLogin = (e) => {
+        e.preventDefault();
+        console.log("Simulierter Login mit:", username);
+        onLoginSuccess({ username: username });
+    };
+
     const handleRegister = (e) => {
         e.preventDefault();
         console.log("Registrierung mit:", username, password);
