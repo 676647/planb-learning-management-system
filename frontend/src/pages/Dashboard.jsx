@@ -8,9 +8,8 @@ export default function Dashboard({ user, onLogout, onSelectCourse }) {
     const [courses, setCourses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-
+//mock to have a course there
     useEffect(() => {
-        // 2. Wir simulieren eine kurze Ladezeit (wie bei einer echten Datenbank)
         setTimeout(() => {
             setCourses(mockCourses);
             setIsLoading(false);

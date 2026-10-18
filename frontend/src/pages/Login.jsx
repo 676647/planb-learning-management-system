@@ -8,7 +8,7 @@ export default function Login({onLoginSuccess}) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
-    // Echte API-Verbindung für den Login
+    // Real API after Backend Implementation
 /*    const handleLogin = async (e) => {
         e.preventDefault();
 
