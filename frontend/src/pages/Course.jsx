@@ -64,7 +64,7 @@ export default function Course({ course, onBackToDashboard }) {
             </div>
 
             <div className="course-content-area">
-                {/* 4. Globaler Toggle "Alles einklappen" */}
+                {/* 4. Global collapse all */}
                 <div className="collapse-toggle-wrapper">
                     {anyExpanded ? (
                         <button onClick={() => toggleAll(false)} className="btn-toggle-all">Toggle All</button>
