@@ -1,0 +1,91 @@
+### Run these in IntelliJ: open this file and click the green ▶ next to each request.
+### Start the app first. The H2 database is empty on every start.
+
+### 1. Create a teacher
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{"email": "teacher@hvl.no", "name": "Tina Teacher"}
+
+### 2. Create a student
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{"email": "student@hvl.no", "name": "Sam Student"}
+
+### 3. Teacher (id 1) creates a course
+POST http://localhost:8080/api/courses
+Content-Type: application/json
+
+{"title": "DAT250", "description": "Software technologies", "semester": "Autumn 2026", "teacherId": 1}
+
+### 4. Invite the student into course 1
+POST http://localhost:8080/api/courses/1/enrollments
+Content-Type: application/json
+
+{"email": "student@hvl.no", "role": "STUDENT"}
+
+### 5. List participants of course 1
+GET http://localhost:8080/api/courses/1/enrollments
+
+### 6. List all courses
+GET http://localhost:8080/api/courses
+
+### 7. Courses the student (id 2) is in
+GET http://localhost:8080/api/users/2/enrollments
+
+### ---------- Modules and contents (run 1–3 above first) ----------
+
+### 8. Add two modules to course 1
+POST http://localhost:8080/api/courses/1/modules
+Content-Type: application/json
+
+{"title": "Week 1: Introduction"}
+
+###
+POST http://localhost:8080/api/courses/1/modules
+Content-Type: application/json
+
+{"title": "Week 2: Persistence"}
+
+### 9. Module 2 requires module 1
+PUT http://localhost:8080/api/modules/2/requires/1
+
+### 10. List the course's modules in order
+GET http://localhost:8080/api/courses/1/modules
+
+### 11. Add a page, a quiz, a coding exercise and an assignment to module 1
+POST http://localhost:8080/api/modules/1/pages
+Content-Type: application/json
+
+{"title": "Welcome", "body": "# Welcome to DAT250\n![logo](https://example.com/logo.png)"}
+
+###
+POST http://localhost:8080/api/modules/1/quizzes
+Content-Type: application/json
+
+{"title": "Warm-up quiz", "maxAttempts": 3, "showHints": true, "deadline": "2026-10-30T23:59:00Z"}
+
+###
+POST http://localhost:8080/api/modules/1/coding-exercises
+Content-Type: application/json
+
+{"title": "Hello Spring", "starterRepositoryUrl": "https://git.app.uib.no/example/hello-spring.git", "groupWork": true}
+
+###
+POST http://localhost:8080/api/modules/1/assignments
+Content-Type: application/json
+
+{"title": "Hand-in 1", "description": "Upload your report as PDF", "deadline": "2026-10-30T23:59:00Z", "lateSubmissionsAllowed": true, "visibleFrom": "2026-10-26T07:00:00Z"}
+
+### 12. All contents of module 1 (teacher's view)
+GET http://localhost:8080/api/modules/1/contents
+
+### 13. Only currently visible contents (student's view)
+GET http://localhost:8080/api/modules/1/contents?visibleOnly=true
+
+### 14. Reorder module 1's contents (ids must list every item once)
+PUT http://localhost:8080/api/modules/1/contents/order
+Content-Type: application/json
+
+{"ids": [4, 1, 2, 3]}
