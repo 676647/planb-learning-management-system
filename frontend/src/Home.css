@@ -1,0 +1,720 @@
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+}
+.login-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+.primary-button {
+  background-color: #2563eb;
+  color: white;
+  padding: 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primary-button:hover {
+  background-color: #1d4ed8; /* Hover-Effekt ist jetzt möglich! */
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center; /* Schiebt es horizontal in die Mitte */
+  align-items: center;     /* Schiebt es vertikal in die Mitte */
+  min-height: 100vh;
+  background-color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+}
+
+/* Die weiße Anmelde-Box */
+.auth-box {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.auth-title {
+  color: #0f172a;
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-size: 2rem;
+}
+
+.auth-buttons, .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-form h2 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #334155;
+}
+
+.auth-input {
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.auth-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background-color: #059669;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+/* Hauptcontainer für das Dashboard */
+.dashboard-container {
+  padding: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Header-Bereich (Titel & Abmelden-Button nebeneinander) */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.logout-btn {
+  padding: 10px 20px;
+  background-color: #dc2626; /* Rot */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #b91c1c;
+}
+
+/* Zwischentitel */
+.section-title {
+  color: #334155;
+  margin-bottom: 20px;
+}
+
+.loading-text {
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Raster für die Kurskarten (Nebeneinander) */
+.course-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap; /* Bricht in die nächste Zeile um, wenn kein Platz ist */
+}
+
+/* Design einer einzelnen Kurs-Karte */
+.course-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column; /* Damit der Button unten bleibt */
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.course-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #1e293b;
+}
+
+.course-card p {
+  color: #64748b;
+  margin-bottom: 20px;
+  flex-grow: 1; /* Drückt den Button nach ganz unten */
+}
+
+.open-course-btn {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.open-course-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.course-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #1a1a1a;
+  background-color: #ffffff;
+  min-height: 100vh;
+}
+
+/* Breadcrumbs (Startseite / Dashboard / Meine Kurse) */
+.top-nav-breadcrumbs {
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #595959;
+  margin-bottom: 24px;
+}
+
+.breadcrumb-link {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  color: #1a1a1a;
+  text-decoration: underline;
+}
+
+.breadcrumb-divider {
+  color: #bfbfbf;
+}
+
+.breadcrumb-active {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+/* Große Kurs-Überschrift */
+.course-header-section {
+  margin-bottom: 16px;
+}
+
+.course-full-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Tab-Menü */
+.course-tabs-bar {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.tab-item {
+  background: none;
+  border: none;
+  padding: 12px 16px;
+  font-size: 1rem;
+  color: #595959;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab-item:hover {
+  color: #1a1a1a;
+}
+
+.tab-item.active {
+  color: #1a1a1a;
+  font-weight: 700;
+  border-bottom-color: #0f172a; /* Dunkelblau/Schwarz */
+}
+
+/* "Alles einklappen" Wrapper */
+.collapse-toggle-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.btn-toggle-all {
+  background: none;
+  border: none;
+  color: #595959;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-toggle-all:hover {
+  color: #1a1a1a;
+  text-decoration: underline;
+}
+
+/* Modul-Liste */
+.modules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Einzelne Modul-Karten */
+.module-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #fff;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  overflow: hidden;
+}
+
+.module-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.module-card-header {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Animierter Pfeil (Chevron) */
+.chevron-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: #f1f5f9;
+  border-radius: 50%;
+  color: #595959;
+  font-size: 0.8rem;
+  margin-right: 16px;
+  transition: transform 0.2s, background-color 0.2s;
+  transform: rotate(0deg);
+}
+
+.module-card:hover .chevron-btn {
+  background-color: #e2e8f0;
+}
+
+.chevron-btn.rotate-down {
+  transform: rotate(90deg); /* Zeigt nach unten bei "expanded" */
+}
+
+.module-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* Ausgeklappter Inhalt */
+.module-card-body {
+  border-top: 1.5px solid #f1f5f9;
+  background-color: #fafbfb;
+  padding: 24px 24px 24px 76px; /* Richtet Text an der Überschrift aus */
+}
+
+.module-items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.module-item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.05rem;
+  color: #334155;
+  padding: 6px 0;
+}
+
+.item-icon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+}
+
+.item-text-title {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.item-text-title:hover {
+  color: #2563eb; /* Blau-Highlight beim Drüberfahren */
+  text-decoration: underline;
+}
+
+.no-items-text {
+  color: #64748b;
+  font-style: italic;
+  margin: 0;
+}
+
+/* ===================================================================
+   Added for the connected frontend (dashboard, course tabs, grading)
+   =================================================================== */
+
+.dashboard-container, .course-page-container { color: #1e293b; }
+/* #root is a flex column; with "margin: 0 auto" the course page would shrink to its content */
+.course-page-container { width: 100%; box-sizing: border-box; }
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.subsection-title { color: #475569; font-size: 1.05rem; margin: 24px 0 12px; }
+.dashboard-section { margin-bottom: 16px; }
+.course-description { color: #475569; margin: 0 0 12px; }
+.hint { color: #64748b; font-size: 0.85rem; }
+
+.card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+}
+.card h3 { margin-top: 0; color: #1e293b; }
+
+/* Forms */
+.inline-form { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; max-width: 640px; }
+.inline-form.row { flex-direction: row; align-items: center; max-width: 720px; }
+.inline-form.row .auth-input { flex: 1; }
+.inline-form textarea { font-family: inherit; resize: vertical; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.form-grid label, .checkbox-row label { font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 4px; }
+.checkbox-row { display: flex; flex-wrap: wrap; gap: 16px; }
+.checkbox-row label { flex-direction: row; align-items: center; gap: 6px; }
+.form-error { color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
+.form-success { color: #047857; font-size: 0.9rem; }
+
+.btn-small {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-small:hover { background-color: #1d4ed8; }
+.btn-primary:disabled, .btn-secondary:disabled { opacity: 0.6; cursor: wait; }
+.btn-text.danger { color: #b91c1c; margin-top: 0; }
+.btn-icon { background: none; border: none; cursor: pointer; opacity: 0.5; margin-left: auto; }
+.btn-icon:hover { opacity: 1; }
+.small-select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: white; }
+.chip { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; border-radius: 999px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; }
+
+.type-picker { display: flex; flex-wrap: wrap; gap: 8px; }
+.type-option { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.type-option.active { background: #2563eb; border-color: #2563eb; color: white; }
+
+/* Roles */
+.role-badge { display: inline-block; font-size: 0.75rem; font-weight: 600; border-radius: 999px; padding: 3px 10px; margin-bottom: 8px; width: fit-content; }
+.role-teacher { background: #fef3c7; color: #92400e; }
+.role-student { background: #dbeafe; color: #1e40af; }
+
+/* Modules */
+.module-teacher-tools { border-top: 1px dashed #e2e8f0; margin-top: 12px; padding-top: 12px; }
+.tool-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.requires-note { margin-left: auto; font-size: 0.8rem; color: #92400e; background: #fffbeb; border-radius: 6px; padding: 2px 8px; }
+.item-meta { color: #64748b; font-size: 0.85rem; }
+.module-item-row { gap: 10px; }
+
+/* Content detail */
+.content-detail h2 { margin-top: 8px; }
+.back-link { margin: 0; padding: 0; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 16px 0; }
+.facts dt { color: #64748b; }
+.facts dd { margin: 0; }
+.page-body { white-space: pre-wrap; line-height: 1.6; background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0; }
+.feedback-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
+.late-flag { background: #fee2e2; color: #991b1b; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; border-radius: 4px; padding: 1px 6px; margin-left: 6px; }
+.switch-label { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer; }
+.grade-form { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.grade-form .auth-input { padding: 6px 8px; font-size: 0.9rem; }
+.points-input { width: 80px; }
+.answer-cell { max-width: 280px; overflow-wrap: anywhere; }
+
+/* Tables */
+.table-scroll { overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; background: white; font-size: 0.92rem; }
+.data-table th, .data-table td { border-bottom: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
+.data-table th { background: #f8fafc; color: #475569; font-weight: 600; }
+.data-table tfoot td { background: #f8fafc; color: #475569; font-size: 0.85rem; }
+.gradebook td, .gradebook th { white-space: nowrap; }
+.actions-cell { text-align: right; }
+.status-not_submitted { color: #94a3b8; }
+.status-submitted { color: #b45309; }
+.status-graded { color: #047857; }
+
+/* Groups */
+.group-card { max-width: 320px; }
+.member-list { list-style: none; padding: 0; margin: 0 0 12px; }
+.member-list li { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+
+@media (max-width: 640px) {
+  .dashboard-container, .course-page-container { padding: 16px; }
+  .inline-form.row { flex-direction: column; align-items: stretch; }
+  .course-card { max-width: none; }
+}
