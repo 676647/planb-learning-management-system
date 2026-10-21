@@ -1,90 +1,65 @@
 package fr.skyframe.lms;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.skyframe.lms.support.ApiTestSupport;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/** Exercises US1 end to end through the REST API, using the in-memory H2 database. */
+/** US1 through the REST API, with logged-in users. */
 @SpringBootTest
 @AutoConfigureMockMvc
-class CourseApiTests {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper json;
+class CourseApiTests extends ApiTestSupport {
 
     @Test
     void teacherCreatesCourseAndEnrollsStudent() throws Exception {
-        long teacherId = createUser("api-teacher@hvl.no", "Tina Teacher");
-        createUser("api-student@hvl.no", "Sam Student");
+        TestUser teacher = registerAndLogin("course-teacher@hvl.no", "Tina Teacher");
+        TestUser student = registerAndLogin("course-student@hvl.no", "Sam Student");
 
-        // Teacher creates a course and is automatically enrolled as TEACHER
-        String courseJson = mvc.perform(post("/api/courses")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"title": "DAT250", "description": "Software technologies",
-                                 "semester": "Autumn 2026", "teacherId": %d}
-                                """.formatted(teacherId)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("DAT250"))
-                .andReturn().getResponse().getContentAsString();
-        long courseId = json.readTree(courseJson).get("id").asLong();
+        // The logged-in user creates a course and becomes its teacher
+        long courseId = create(teacher, "/api/courses", """
+                {"title": "DAT250", "description": "Software technologies", "semester": "Autumn 2026"}
+                """);
 
-        // Teacher invites a student by e-mail
         String enroll = """
-                {"email": "api-student@hvl.no", "role": "STUDENT"}
+                {"email": "course-student@hvl.no", "role": "STUDENT"}
                 """;
-        mvc.perform(post("/api/courses/{id}/enrollments", courseId)
-                        .contentType(MediaType.APPLICATION_JSON).content(enroll))
+        postJson(teacher, "/api/courses/" + courseId + "/enrollments", enroll)
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.role").value("STUDENT"));
 
         // Enrolling the same student twice is rejected
-        mvc.perform(post("/api/courses/{id}/enrollments", courseId)
-                        .contentType(MediaType.APPLICATION_JSON).content(enroll))
+        postJson(teacher, "/api/courses/" + courseId + "/enrollments", enroll)
                 .andExpect(status().isConflict());
 
-        // The course now has two participants
-        mvc.perform(get("/api/courses/{id}/enrollments", courseId))
+        // The student sees the course among their enrollments
+        getAs(student, "/api/users/me/enrollments")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].course.title").value("DAT250"))
+                .andExpect(jsonPath("$[0].role").value("STUDENT"));
+
+        // Both participants can see the participant list
+        getAs(student, "/api/courses/" + courseId + "/enrollments")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
     void unknownCourseReturns404() throws Exception {
-        mvc.perform(get("/api/courses/{id}", 999_999))
-                .andExpect(status().isNotFound());
+        TestUser user = registerAndLogin("course-someone@hvl.no", "Some One");
+        getAs(user, "/api/courses/999999").andExpect(status().isNotFound());
+        getAs(user, "/api/courses/999999/enrollments").andExpect(status().isNotFound());
     }
 
     @Test
-    void invalidEmailReturns400() throws Exception {
-        mvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
+    void invalidRegistrationReturns400() throws Exception {
+        mvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email": "not-an-email", "name": "X"}
+                                {"email": "not-an-email", "name": "X", "password": "short"}
                                 """))
                 .andExpect(status().isBadRequest());
-    }
-
-    private long createUser(String email, String name) throws Exception {
-        String body = mvc.perform(post("/api/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"email": "%s", "name": "%s"}
-                                """.formatted(email, name)))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        JsonNode node = json.readTree(body);
-        return node.get("id").asLong();
     }
 }

@@ -34,7 +34,7 @@ class ModuleContentServiceTests {
 
     @BeforeEach
     void createCourse() {
-        User teacher = userService.create("teacher@hvl.no", "Tina Teacher");
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
         course = courseService.create(teacher.getId(), "DAT250", null, "Autumn 2026");
     }
 
@@ -88,7 +88,7 @@ class ModuleContentServiceTests {
 
     @Test
     void moduleCannotRequireModuleOfAnotherCourse() {
-        User other = userService.create("other@hvl.no", "Other Teacher");
+        User other = userService.register("other@hvl.no", "Other Teacher", "secret-password");
         Course otherCourse = courseService.create(other.getId(), "DAT251", null, null);
         CourseModule here = moduleService.create(course.getId(), "Here");
         CourseModule there = moduleService.create(otherCourse.getId(), "There");

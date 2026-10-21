@@ -82,6 +82,11 @@ public class ContentService {
                 .toList();
     }
 
+    /** True if students may see this item right now. */
+    public boolean isVisibleNow(Content content) {
+        return content.isVisibleAt(clock.instant());
+    }
+
     /** Puts the module's contents in the given order. The list must contain every item exactly once. */
     public List<Content> reorder(Long moduleId, List<Long> orderedIds) {
         List<Content> current = listForModule(moduleId);

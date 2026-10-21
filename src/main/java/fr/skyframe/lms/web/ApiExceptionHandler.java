@@ -2,9 +2,11 @@ package fr.skyframe.lms.web;
 
 import fr.skyframe.lms.service.ConflictException;
 import fr.skyframe.lms.service.ForbiddenException;
+import fr.skyframe.lms.service.InvalidCredentialsException;
 import fr.skyframe.lms.service.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,6 +30,17 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ForbiddenException.class)
     public ProblemDetail forbidden(ForbiddenException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    /** A @PreAuthorize rule said no. */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail accessDenied(AccessDeniedException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "You are not allowed to do this");
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ProblemDetail unauthorized(InvalidCredentialsException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -48,10 +48,10 @@ class SubmissionGradingServiceTests {
     @BeforeEach
     void setUp() {
         clock.setInstant(MONDAY_8);
-        teacher = userService.create("teacher@hvl.no", "Tina Teacher");
-        anna = userService.create("anna@hvl.no", "Anna");
-        bob = userService.create("bob@hvl.no", "Bob");
-        carl = userService.create("carl@hvl.no", "Carl");
+        teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
+        anna = userService.register("anna@hvl.no", "Anna", "secret-password");
+        bob = userService.register("bob@hvl.no", "Bob", "secret-password");
+        carl = userService.register("carl@hvl.no", "Carl", "secret-password");
         course = courseService.create(teacher.getId(), "DAT250", null, "Autumn 2026");
         for (User s : List.of(anna, bob, carl)) {
             courseService.enroll(course.getId(), s.getEmail(), Role.STUDENT);

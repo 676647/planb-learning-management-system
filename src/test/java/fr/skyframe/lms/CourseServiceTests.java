@@ -34,7 +34,7 @@ class CourseServiceTests {
 
     @Test
     void creatorBecomesTeacherOfNewCourse() {
-        User teacher = userService.create("teacher@hvl.no", "Tina Teacher");
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
 
         Course course = courseService.create(teacher.getId(), "DAT250", "Software technologies", "Autumn 2026");
 
@@ -46,8 +46,8 @@ class CourseServiceTests {
 
     @Test
     void studentCanBeEnrolledByEmail() {
-        User teacher = userService.create("teacher@hvl.no", "Tina Teacher");
-        User student = userService.create("student@hvl.no", "Sam Student");
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
+        User student = userService.register("student@hvl.no", "Sam Student", "secret-password");
         Course course = courseService.create(teacher.getId(), "DAT250", null, "Autumn 2026");
 
         courseService.enroll(course.getId(), "student@hvl.no", Role.STUDENT);
@@ -60,8 +60,8 @@ class CourseServiceTests {
 
     @Test
     void sameUserCannotBeEnrolledTwice() {
-        User teacher = userService.create("teacher@hvl.no", "Tina Teacher");
-        userService.create("student@hvl.no", "Sam Student");
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
+        userService.register("student@hvl.no", "Sam Student", "secret-password");
         Course course = courseService.create(teacher.getId(), "DAT250", null, null);
         courseService.enroll(course.getId(), "student@hvl.no", Role.STUDENT);
 
@@ -71,15 +71,15 @@ class CourseServiceTests {
 
     @Test
     void emailsAreUniqueAndCaseInsensitive() {
-        userService.create("Teacher@HVL.no", "Tina Teacher");
+        userService.register("Teacher@HVL.no", "Tina Teacher", "secret-password");
 
-        assertThatThrownBy(() -> userService.create("teacher@hvl.no", "Someone Else"))
+        assertThatThrownBy(() -> userService.register("teacher@hvl.no", "Someone Else", "secret-password"))
                 .isInstanceOf(ConflictException.class);
     }
 
     @Test
     void courseCanBeUpdated() {
-        User teacher = userService.create("teacher@hvl.no", "Tina Teacher");
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
         Course course = courseService.create(teacher.getId(), "DAT250", null, "Autumn 2026");
 
         courseService.update(course.getId(), "DAT250 Software Technologies", "Updated", "Autumn 2026");
@@ -89,7 +89,7 @@ class CourseServiceTests {
 
     @Test
     void deletingCourseRemovesItAndItsEnrollments() {
-        User teacher = userService.create("teacher@hvl.no", "Tina Teacher");
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
         Course course = courseService.create(teacher.getId(), "DAT250", null, null);
 
         courseService.delete(course.getId());
@@ -101,7 +101,7 @@ class CourseServiceTests {
 
     @Test
     void enrollingUnknownUserFails() {
-        User teacher = userService.create("teacher@hvl.no", "Tina Teacher");
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
         Course course = courseService.create(teacher.getId(), "DAT250", null, null);
 
         assertThatThrownBy(() -> courseService.enroll(course.getId(), "nobody@hvl.no", Role.STUDENT))

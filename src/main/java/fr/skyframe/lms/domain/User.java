@@ -15,6 +15,10 @@ public class User {
 
     private String name;
 
+    /** BCrypt hash of the password. The plain password is never stored. */
+    @Column(nullable = false)
+    private String passwordHash;
+
     public Long getId() {
         return id;
     }
@@ -37,6 +41,14 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
 

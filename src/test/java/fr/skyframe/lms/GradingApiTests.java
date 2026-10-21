@@ -1,101 +1,72 @@
 package fr.skyframe.lms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.skyframe.lms.support.ApiTestSupport;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /** US3 through the REST API: a student hands in, the teacher grades and publishes. */
 @SpringBootTest
 @AutoConfigureMockMvc
-class GradingApiTests {
-
-    @Autowired
-    MockMvc mvc;
-
-    @Autowired
-    ObjectMapper json;
+class GradingApiTests extends ApiTestSupport {
 
     @Test
     void teacherGradesAndPublishes() throws Exception {
-        long teacherId = postForId("/api/users", """
-                {"email": "grading-teacher@hvl.no", "name": "Tina Teacher"}
-                """);
-        long studentId = postForId("/api/users", """
-                {"email": "grading-student@hvl.no", "name": "Sam Student"}
-                """);
-        long courseId = postForId("/api/courses", """
-                {"title": "DAT250", "teacherId": %d}
-                """.formatted(teacherId));
-        mvc.perform(post("/api/courses/{id}/enrollments", courseId).contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"email": "grading-student@hvl.no", "role": "STUDENT"}
-                                """))
-                .andExpect(status().isCreated());
-        long moduleId = postForId("/api/courses/" + courseId + "/modules", """
+        TestUser teacher = registerAndLogin("grading-teacher@hvl.no", "Tina Teacher");
+        TestUser student = registerAndLogin("grading-student@hvl.no", "Sam Student");
+        long courseId = courseWithStudents(teacher, "DAT250", student);
+        long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
                 {"title": "Week 1"}
                 """);
-        long assignmentId = postForId("/api/modules/" + moduleId + "/assignments", """
+        long assignmentId = create(teacher, "/api/modules/" + moduleId + "/assignments", """
                 {"title": "Hand-in 1", "deadline": "2099-01-01T00:00:00Z", "maxPoints": 10}
                 """);
 
-        // Student hands in
-        long submissionId = postForId("/api/contents/" + assignmentId + "/submissions", """
-                {"studentId": %d, "answer": "https://git.app.uib.no/sam/hand-in-1"}
-                """.formatted(studentId));
+        // The student hands in; the submitter is taken from the token
+        long submissionId = create(student, "/api/contents/" + assignmentId + "/submissions", """
+                {"answer": "https://git.app.uib.no/sam/hand-in-1"}
+                """);
 
-        // A student cannot grade
-        mvc.perform(put("/api/submissions/{id}/grade", submissionId).contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"teacherId": %d, "points": 10}
-                                """.formatted(studentId)))
+        // A student cannot grade, not even their own work
+        putJson(student, "/api/submissions/" + submissionId + "/grade", """
+                {"points": 10}
+                """)
                 .andExpect(status().isForbidden());
 
-        // Teacher grades
-        mvc.perform(put("/api/submissions/{id}/grade", submissionId).contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"teacherId": %d, "points": 9, "feedback": "Clear and well structured"}
-                                """.formatted(teacherId)))
+        putJson(teacher, "/api/submissions/" + submissionId + "/grade", """
+                {"points": 9, "feedback": "Clear and well structured"}
+                """)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.points").value(9.0));
 
-        // The gradebook shows the result to the teacher
-        mvc.perform(get("/api/courses/{id}/gradebook", courseId))
+        getAs(teacher, "/api/courses/" + courseId + "/gradebook")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].title").value("Hand-in 1"))
                 .andExpect(jsonPath("$.students[0].entries[0].status").value("GRADED"))
                 .andExpect(jsonPath("$.students[0].entries[0].points").value(9.0));
 
         // Before publishing the student does not see the grade ...
-        mvc.perform(get("/api/courses/{c}/students/{s}/grades", courseId, studentId))
+        getAs(student, "/api/courses/" + courseId + "/my-grades")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].status").value("SUBMITTED"))
                 .andExpect(jsonPath("$[0].points").doesNotExist());
+        getAs(student, "/api/submissions/" + submissionId + "/grade")
+                .andExpect(status().isForbidden());
 
         // ... after publishing they do
-        mvc.perform(put("/api/contents/{id}/grades-published", assignmentId).contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"teacherId": %d, "published": true}
-                                """.formatted(teacherId)))
+        putJson(teacher, "/api/contents/" + assignmentId + "/grades-published", """
+                {"published": true}
+                """)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gradesPublished").value(true));
 
-        mvc.perform(get("/api/courses/{c}/students/{s}/grades", courseId, studentId))
+        getAs(student, "/api/courses/" + courseId + "/my-grades")
                 .andExpect(jsonPath("$[0].status").value("GRADED"))
                 .andExpect(jsonPath("$[0].points").value(9.0))
                 .andExpect(jsonPath("$[0].feedback").value("Clear and well structured"));
-    }
-
-    private long postForId(String url, String body) throws Exception {
-        String response = mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON).content(body))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
-        return json.readTree(response).get("id").asLong();
+        getAs(student, "/api/submissions/" + submissionId + "/grade")
+                .andExpect(status().isOk());
     }
 }
