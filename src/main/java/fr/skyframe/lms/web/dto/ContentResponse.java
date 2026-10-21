@@ -25,6 +25,8 @@ public record ContentResponse(
         // Quiz, CodingExercise, Assignment
         Instant deadline,
         Boolean lateSubmissionsAllowed,
+        Integer maxPoints,
+        Boolean gradesPublished,
         // Quiz
         Integer maxAttempts,
         Boolean showHints,
@@ -36,8 +38,8 @@ public record ContentResponse(
     public static ContentResponse from(Content c) {
         String body = null, description = null, repo = null;
         Instant deadline = null;
-        Boolean late = null, hints = null, group = null;
-        Integer attempts = null;
+        Boolean late = null, hints = null, group = null, published = null;
+        Integer attempts = null, maxPoints = null;
 
         if (c instanceof Page p) {
             body = p.getBody();
@@ -45,6 +47,8 @@ public record ContentResponse(
         if (c instanceof GradedContent g) {
             deadline = g.getDeadline();
             late = g.getLateSubmissionsAllowed();
+            maxPoints = g.getMaxPoints();
+            published = g.getGradesPublished();
         }
         if (c instanceof Quiz q) {
             attempts = q.getMaxAttempts();
@@ -59,7 +63,8 @@ public record ContentResponse(
             group = a.getGroupWork();
         }
         return new ContentResponse(c.getId(), c.getModule().getId(), c.getType(), c.getTitle(), c.getPosition(),
-                c.getVisibleFrom(), c.getVisibleUntil(), body, description, deadline, late, attempts, hints,
+                c.getVisibleFrom(), c.getVisibleUntil(), body, description, deadline, late, maxPoints, published,
+                attempts, hints,
                 group, repo);
     }
 }

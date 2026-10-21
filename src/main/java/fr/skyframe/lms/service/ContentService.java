@@ -2,8 +2,11 @@ package fr.skyframe.lms.service;
 
 import fr.skyframe.lms.domain.Content;
 import fr.skyframe.lms.domain.CourseModule;
+import fr.skyframe.lms.domain.GradedContent;
 import fr.skyframe.lms.domain.Quiz;
 import fr.skyframe.lms.repository.ContentRepository;
+import fr.skyframe.lms.repository.GradeRepository;
+import fr.skyframe.lms.repository.SubmissionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +22,16 @@ import java.util.Set;
 public class ContentService {
 
     private final ContentRepository contents;
+    private final SubmissionRepository submissions;
+    private final GradeRepository grades;
     private final ModuleService moduleService;
     private final Clock clock;
 
-    public ContentService(ContentRepository contents, ModuleService moduleService, Clock clock) {
+    public ContentService(ContentRepository contents, SubmissionRepository submissions, GradeRepository grades,
+                          ModuleService moduleService, Clock clock) {
         this.contents = contents;
+        this.submissions = submissions;
+        this.grades = grades;
         this.moduleService = moduleService;
         this.clock = clock;
     }
@@ -47,6 +55,15 @@ public class ContentService {
     public Content get(Long id) {
         return contents.findById(id)
                 .orElseThrow(() -> new NotFoundException("Content " + id + " not found"));
+    }
+
+    /** Like get(), but only for gradable items (quizzes, coding exercises, assignments). */
+    @Transactional(readOnly = true)
+    public GradedContent getGraded(Long id) {
+        if (get(id) instanceof GradedContent graded) {
+            return graded;
+        }
+        throw new IllegalArgumentException("Content " + id + " is a page and cannot be submitted or graded");
     }
 
     /** All content items of a module in order (the teacher's view). */
@@ -82,8 +99,12 @@ public class ContentService {
         return contents.findByModuleIdOrderByPositionAsc(moduleId);
     }
 
+    /** Deletes an item together with its submissions and grades. */
     public void delete(Long id) {
-        contents.delete(get(id));
+        Content content = get(id);
+        grades.deleteBySubmissionContentId(id);
+        submissions.deleteByContentId(id);
+        contents.delete(content);
     }
 
     private void validate(Content content) {

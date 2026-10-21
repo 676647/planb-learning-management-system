@@ -2,6 +2,7 @@ package fr.skyframe.lms.web.dto;
 
 import fr.skyframe.lms.domain.Assignment;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.Instant;
 
@@ -12,6 +13,7 @@ public record AssignmentRequest(
         Instant visibleUntil,
         Instant deadline,
         Boolean lateSubmissionsAllowed,
+        @PositiveOrZero Integer maxPoints,
         Boolean groupWork
 ) {
     public Assignment toEntity() {
@@ -23,6 +25,7 @@ public record AssignmentRequest(
         assignment.setDeadline(deadline);
         if (lateSubmissionsAllowed != null) assignment.setLateSubmissionsAllowed(lateSubmissionsAllowed);
         if (groupWork != null) assignment.setGroupWork(groupWork);
+        assignment.setMaxPoints(maxPoints);
         return assignment;
     }
 }

@@ -5,6 +5,8 @@ import fr.skyframe.lms.domain.CourseModule;
 import fr.skyframe.lms.repository.ContentRepository;
 import fr.skyframe.lms.repository.CourseModuleRepository;
 import fr.skyframe.lms.repository.CourseRepository;
+import fr.skyframe.lms.repository.GradeRepository;
+import fr.skyframe.lms.repository.SubmissionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +24,16 @@ public class ModuleService {
     private final CourseModuleRepository modules;
     private final ContentRepository contents;
     private final CourseRepository courses;
+    private final SubmissionRepository submissions;
+    private final GradeRepository grades;
 
-    public ModuleService(CourseModuleRepository modules, ContentRepository contents, CourseRepository courses) {
+    public ModuleService(CourseModuleRepository modules, ContentRepository contents, CourseRepository courses,
+                         SubmissionRepository submissions, GradeRepository grades) {
         this.modules = modules;
         this.contents = contents;
         this.courses = courses;
+        this.submissions = submissions;
+        this.grades = grades;
     }
 
     /** Adds a new module at the end of the course. */
@@ -116,7 +123,7 @@ public class ModuleService {
             dependent.getRequires().remove(module);
         }
         module.getRequires().clear();
-        contents.deleteByModuleId(id);
+        deleteContentsOf(id);
         modules.delete(module);
     }
 
@@ -126,9 +133,18 @@ public class ModuleService {
         // Dependencies only exist within a course, so clearing them all first is enough.
         all.forEach(m -> m.getRequires().clear());
         for (CourseModule module : all) {
-            contents.deleteByModuleId(module.getId());
+            deleteContentsOf(module.getId());
             modules.delete(module);
         }
+    }
+
+    /** Deletes a module's contents, first removing their grades and submissions (which point to them). */
+    private void deleteContentsOf(Long moduleId) {
+        for (var content : contents.findByModuleIdOrderByPositionAsc(moduleId)) {
+            grades.deleteBySubmissionContentId(content.getId());
+            submissions.deleteByContentId(content.getId());
+        }
+        contents.deleteByModuleId(moduleId);
     }
 
     /** True if {@code from} requires {@code target}, directly or through other modules. */

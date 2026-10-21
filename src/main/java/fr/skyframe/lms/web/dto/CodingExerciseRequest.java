@@ -2,6 +2,7 @@ package fr.skyframe.lms.web.dto;
 
 import fr.skyframe.lms.domain.CodingExercise;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.Instant;
 
@@ -11,6 +12,7 @@ public record CodingExerciseRequest(
         Instant visibleUntil,
         Instant deadline,
         Boolean lateSubmissionsAllowed,
+        @PositiveOrZero Integer maxPoints,
         String starterRepositoryUrl,
         Boolean groupWork
 ) {
@@ -23,6 +25,7 @@ public record CodingExerciseRequest(
         if (lateSubmissionsAllowed != null) exercise.setLateSubmissionsAllowed(lateSubmissionsAllowed);
         exercise.setStarterRepositoryUrl(starterRepositoryUrl);
         if (groupWork != null) exercise.setGroupWork(groupWork);
+        exercise.setMaxPoints(maxPoints);
         return exercise;
     }
 }

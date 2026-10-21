@@ -31,6 +31,11 @@ public class CodingExercise extends GradedContent {
         this.starterRepositoryUrl = starterRepositoryUrl;
     }
 
+    @Override
+    public boolean solvedInGroups() {
+        return Boolean.TRUE.equals(groupWork);
+    }
+
     public Boolean getGroupWork() {
         return groupWork;
     }

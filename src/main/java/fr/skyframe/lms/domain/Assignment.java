@@ -33,6 +33,11 @@ public class Assignment extends GradedContent {
         this.description = description;
     }
 
+    @Override
+    public boolean solvedInGroups() {
+        return Boolean.TRUE.equals(groupWork);
+    }
+
     public Boolean getGroupWork() {
         return groupWork;
     }

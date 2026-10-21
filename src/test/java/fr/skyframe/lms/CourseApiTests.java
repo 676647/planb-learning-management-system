@@ -25,8 +25,8 @@ class CourseApiTests {
 
     @Test
     void teacherCreatesCourseAndEnrollsStudent() throws Exception {
-        long teacherId = createUser("teacher@hvl.no", "Tina Teacher");
-        createUser("student@hvl.no", "Sam Student");
+        long teacherId = createUser("api-teacher@hvl.no", "Tina Teacher");
+        createUser("api-student@hvl.no", "Sam Student");
 
         // Teacher creates a course and is automatically enrolled as TEACHER
         String courseJson = mvc.perform(post("/api/courses")
@@ -42,7 +42,7 @@ class CourseApiTests {
 
         // Teacher invites a student by e-mail
         String enroll = """
-                {"email": "student@hvl.no", "role": "STUDENT"}
+                {"email": "api-student@hvl.no", "role": "STUDENT"}
                 """;
         mvc.perform(post("/api/courses/{id}/enrollments", courseId)
                         .contentType(MediaType.APPLICATION_JSON).content(enroll))

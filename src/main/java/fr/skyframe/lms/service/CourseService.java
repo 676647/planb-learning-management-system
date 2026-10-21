@@ -23,13 +23,15 @@ public class CourseService {
     private final EnrollmentRepository enrollments;
     private final UserService userService;
     private final ModuleService moduleService;
+    private final GroupService groupService;
 
     public CourseService(CourseRepository courses, EnrollmentRepository enrollments,
-                         UserService userService, ModuleService moduleService) {
+                         UserService userService, ModuleService moduleService, GroupService groupService) {
         this.courses = courses;
         this.enrollments = enrollments;
         this.userService = userService;
         this.moduleService = moduleService;
+        this.groupService = groupService;
     }
 
     /** Creates a course and enrolls the creator as its teacher. */
@@ -67,7 +69,8 @@ public class CourseService {
 
     public void delete(Long id) {
         Course course = get(id);
-        moduleService.deleteAllOfCourse(course.getId());
+        moduleService.deleteAllOfCourse(course.getId()); // also removes submissions and grades
+        groupService.deleteAllOfCourse(course.getId());
         enrollments.deleteByCourseId(course.getId());
         courses.delete(course);
     }
