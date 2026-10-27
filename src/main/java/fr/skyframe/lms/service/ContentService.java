@@ -25,14 +25,16 @@ public class ContentService {
     private final SubmissionRepository submissions;
     private final GradeRepository grades;
     private final ModuleService moduleService;
+    private final StoredFileService files;
     private final Clock clock;
 
     public ContentService(ContentRepository contents, SubmissionRepository submissions, GradeRepository grades,
-                          ModuleService moduleService, Clock clock) {
+                          ModuleService moduleService, StoredFileService files, Clock clock) {
         this.contents = contents;
         this.submissions = submissions;
         this.grades = grades;
         this.moduleService = moduleService;
+        this.files = files;
         this.clock = clock;
     }
 
@@ -107,6 +109,7 @@ public class ContentService {
     /** Deletes an item together with its submissions and grades. */
     public void delete(Long id) {
         Content content = get(id);
+        files.deleteFilesOfContent(id);
         grades.deleteBySubmissionContentId(id);
         submissions.deleteByContentId(id);
         contents.delete(content);

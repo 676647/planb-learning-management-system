@@ -41,6 +41,12 @@ class GradingApiTests extends ApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.points").value(9.0));
 
+        // The grading queue shows the submission together with its grade
+        getAs(teacher, "/api/contents/" + assignmentId + "/submissions")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].submission.submittedBy.name").value("Sam Student"))
+                .andExpect(jsonPath("$[0].grade.points").value(9.0));
+
         getAs(teacher, "/api/courses/" + courseId + "/gradebook")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].title").value("Hand-in 1"))

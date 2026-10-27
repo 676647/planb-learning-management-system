@@ -1,5 +1,6 @@
 ### Run these in IntelliJ, top to bottom: open this file and click the green ▶ next to each request.
-### Start the app first. The H2 database is empty on every start.
+### Start the databases (docker compose up -d postgres mongo) and the app first.
+### Data is kept between restarts, so on a second run the registrations return 409 (already exists): just carry on with the logins.
 ### The login requests save their token, so later requests can use {{teacher}} / {{student}}.
 
 ### 1. Register a teacher and a student

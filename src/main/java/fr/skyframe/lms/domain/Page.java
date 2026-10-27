@@ -12,7 +12,7 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("PAGE")
 public class Page extends Content {
 
-    /** Up to 100,000 characters; a plain long text column works on both H2 and PostgreSQL. */
+    /** Up to 100,000 characters; a plain long text column works on PostgreSQL and on H2 (tests). */
     @Column(name = "body", length = 100_000)
     private String body;
 

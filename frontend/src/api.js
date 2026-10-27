@@ -44,9 +44,12 @@ export class ApiError extends Error {
   }
 }
 
-async function request(method, path, body) {
+/** Sends a request and returns the raw Response, throwing ApiError for error statuses. */
+async function send(method, path, body) {
   const headers = {}
-  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  const isForm = body instanceof FormData
+  // For FormData (file uploads) the browser sets the multipart Content-Type itself
+  if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`
 
   let response
@@ -54,7 +57,7 @@ async function request(method, path, body) {
     response = await fetch(`/api${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, 'Cannot reach the server. Is Spring Boot running?')
@@ -74,8 +77,29 @@ async function request(method, path, body) {
     }
     throw new ApiError(response.status, message)
   }
+  return response
+}
+
+async function request(method, path, body) {
+  const response = await send(method, path, body)
   const text = await response.text()
   return text ? JSON.parse(text) : null
+}
+
+/**
+ * Downloads a protected file. A plain <a href> can't send our login token, so we fetch the
+ * file with the token and then hand it to the browser as a download.
+ */
+async function download(path, filename) {
+  const response = await send('GET', path)
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }
 
 const get = (path) => request('GET', path)
@@ -114,12 +138,25 @@ export const api = {
   deleteContent: (id) => del(`/contents/${id}`),
 
   // submissions & grading
-  submit: (contentId, answer) => post(`/contents/${contentId}/submissions`, { answer }),
+  /** Hand in a text answer and/or a file. With a file it is sent as multipart/form-data. */
+  submit: (contentId, answer, file) => {
+    if (!file) return post(`/contents/${contentId}/submissions`, { answer })
+    const form = new FormData()
+    if (answer) form.append('answer', answer)
+    form.append('file', file)
+    return post(`/contents/${contentId}/submissions`, form)
+  },
+  downloadSubmissionFile: (submissionId, filename) => download(`/submissions/${submissionId}/file`, filename),
   submissions: (contentId) => get(`/contents/${contentId}/submissions`),
   grade: (submissionId, points, feedback) => put(`/submissions/${submissionId}/grade`, { points, feedback }),
   publishGrades: (contentId, published) => put(`/contents/${contentId}/grades-published`, { published }),
   gradebook: (courseId) => get(`/courses/${courseId}/gradebook`),
   myGrades: (courseId) => get(`/courses/${courseId}/my-grades`),
+
+  // notifications (created from RabbitMQ domain events)
+  notifications: () => get('/notifications'),
+  markNotificationRead: (id) => put(`/notifications/${id}/read`),
+  markAllNotificationsRead: () => put('/notifications/read-all'),
 
   // groups
   groups: (courseId) => get(`/courses/${courseId}/groups`),

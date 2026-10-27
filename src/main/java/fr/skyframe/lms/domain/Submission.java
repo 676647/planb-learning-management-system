@@ -38,12 +38,13 @@ public class Submission {
     @Column(nullable = false)
     private boolean late;
 
-    /**
-     * The hand-in itself: free text, or a link (e.g. to the student's Git repository).
-     * Uploaded files (PDF, Word) will later be kept in object storage, with only a reference here.
-     */
+    /** The hand-in as text, or a link (e.g. to the student's Git repository). Optional if a file is attached. */
     @Column(length = 100_000)
     private String answer;
+
+    /** An uploaded document (PDF, Word, …). The bytes are in MongoDB GridFS; this is only the reference. */
+    @Embedded
+    private FileReference file;
 
     /** True if this submission counts for the given student (as submitter or as group member). */
     public boolean countsFor(Long userId) {
@@ -96,6 +97,14 @@ public class Submission {
 
     public void setLate(boolean late) {
         this.late = late;
+    }
+
+    public FileReference getFile() {
+        return file;
+    }
+
+    public void setFile(FileReference file) {
+        this.file = file;
     }
 
     public String getAnswer() {

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { api } from '../api.js'
 import { useApiData } from '../useApiData.js'
-import { CONTENT_TYPES, STATUS_LABELS, formatDateTime, isGraded, isLink } from '../format.js'
+import { ALLOWED_FILE_TYPES, CONTENT_TYPES, STATUS_LABELS, formatDateTime, formatSize, isGraded, isLink } from '../format.js'
 
 /**
  * One content item. Pages show their text. For quizzes, exercises and assignments:
@@ -48,6 +48,9 @@ function StudentSubmission({ item, course }) {
     const { data: grades, error: loadError, reload } = useApiData(fetchMyGrades)
     const myResult = grades?.find(g => g.contentId === item.id) ?? null
     const [answer, setAnswer] = useState('')
+    const [file, setFile] = useState(null)
+    const [fileInputKey, setFileInputKey] = useState(0) // changing the key empties the file input
+    const [sending, setSending] = useState(false)
     const [message, setMessage] = useState('')
     const [actionError, setError] = useState('')
     const error = actionError || loadError
@@ -56,15 +59,23 @@ function StudentSubmission({ item, course }) {
         e.preventDefault()
         setError('')
         setMessage('')
+        setSending(true)
         try {
-            const s = await api.submit(item.id, answer)
+            const s = await api.submit(item.id, answer, file)
             setAnswer('')
+            setFile(null)
+            setFileInputKey(k => k + 1)
             setMessage(s.late ? 'Handed in — after the deadline, so it is flagged as late.' : 'Handed in. Thank you!')
             reload()
         } catch (err) {
             setError(err.message)
+        } finally {
+            setSending(false)
         }
     }
+
+    const downloadMine = () =>
+        api.downloadSubmissionFile(myResult.submissionId, myResult.fileName).catch(err => setError(err.message))
 
     return (
         <section className="card">
@@ -77,6 +88,9 @@ function StudentSubmission({ item, course }) {
                         {myResult.maxPoints != null && ` / ${myResult.maxPoints}`}</>}
                 </p>
             )}
+            {myResult?.fileName && (
+                <p>Your file: <button type="button" className="link-button" onClick={downloadMine}>📎 {myResult.fileName}</button></p>
+            )}
             {myResult?.feedback && <div className="feedback-box"><strong>Feedback:</strong> {myResult.feedback}</div>}
             {myResult?.status === 'SUBMITTED' && (
                 <p className="hint">Grades become visible here once your teacher publishes them.</p>
@@ -86,10 +100,15 @@ function StudentSubmission({ item, course }) {
                 <textarea className="auth-input" rows={4} value={answer} onChange={e => setAnswer(e.target.value)}
                           placeholder={item.type === 'CODING_EXERCISE'
                               ? 'Link to your Git repository'
-                              : 'Your answer, or a link to your document'} required />
+                              : 'Your answer, or a comment to your file'} />
+                <label className="file-label">
+                    Attach a file (PDF, Word, ZIP, …, max 20 MB)
+                    <input key={fileInputKey} type="file" accept={ALLOWED_FILE_TYPES}
+                           onChange={e => setFile(e.target.files[0] ?? null)} />
+                </label>
                 {error && <p className="form-error">{error}</p>}
                 {message && <p className="form-success">{message}</p>}
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="btn-primary" disabled={sending || (!answer.trim() && !file)}>
                     {myResult && myResult.status !== 'NOT_SUBMITTED' ? 'Hand in again' : 'Hand in'}
                 </button>
                 {myResult && myResult.status !== 'NOT_SUBMITTED' && (
@@ -152,6 +171,16 @@ function TeacherSubmissions({ item }) {
                                 {isLink(submission.answer)
                                     ? <a href={submission.answer} target="_blank" rel="noreferrer">{submission.answer}</a>
                                     : submission.answer}
+                                {submission.file && (
+                                    <div>
+                                        <button type="button" className="link-button"
+                                                onClick={() => api.downloadSubmissionFile(submission.id, submission.file.name)
+                                                    .catch(err => setError(err.message))}>
+                                            📎 {submission.file.name}
+                                        </button>
+                                        <span className="hint"> {formatSize(submission.file.size)}</span>
+                                    </div>
+                                )}
                             </td>
                             <td>
                                 <GradeForm submissionId={submission.id} grade={grade} maxPoints={item.maxPoints}

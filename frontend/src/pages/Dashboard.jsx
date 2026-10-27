@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import '../Home.css'
 import { api } from '../api.js'
 import { useApiData } from '../useApiData.js'
+import Notifications from '../components/Notifications.jsx'
 
 export default function Dashboard({ user, onLogout, onSelectCourse }) {
     // The user's enrollments: each is { id, course, role }
@@ -22,6 +23,8 @@ export default function Dashboard({ user, onLogout, onSelectCourse }) {
                     Sign out
                 </button>
             </header>
+
+            <Notifications enrollments={enrollments} onOpenCourse={onSelectCourse} />
 
             <div className="section-header">
                 <h2 className="section-title">Your classes</h2>

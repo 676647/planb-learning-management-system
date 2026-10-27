@@ -2,13 +2,17 @@ package fr.skyframe.lms.service;
 
 import fr.skyframe.lms.domain.*;
 import fr.skyframe.lms.repository.EnrollmentRepository;
+import fr.skyframe.lms.events.SubmissionHandedIn;
 import fr.skyframe.lms.repository.SubmissionRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Students hand in work for quizzes, coding exercises and assignments.
@@ -29,20 +33,34 @@ public class SubmissionService {
     private final UserService userService;
     private final EnrollmentRepository enrollments;
     private final GroupService groupService;
+    private final StoredFileService files;
+    private final ApplicationEventPublisher events;
     private final Clock clock;
 
     public SubmissionService(SubmissionRepository submissions, ContentService contentService,
                              UserService userService, EnrollmentRepository enrollments,
-                             GroupService groupService, Clock clock) {
+                             GroupService groupService, StoredFileService files,
+                             ApplicationEventPublisher events, Clock clock) {
         this.submissions = submissions;
         this.contentService = contentService;
         this.userService = userService;
         this.enrollments = enrollments;
         this.groupService = groupService;
+        this.files = files;
+        this.events = events;
         this.clock = clock;
     }
 
+    /** Hands in a text answer (or link) without a file. */
     public Submission submit(Long contentId, Long studentId, String answer) {
+        return submit(contentId, studentId, answer, null);
+    }
+
+    /** Hands in a text answer and/or a file (e.g. a PDF report). At least one of the two is required. */
+    public Submission submit(Long contentId, Long studentId, String answer, UploadedFile file) {
+        if ((answer == null || answer.isBlank()) && file == null) {
+            throw new IllegalArgumentException("Hand in an answer, a file, or both");
+        }
         GradedContent item = contentService.getGraded(contentId);
         Long courseId = item.getModule().getCourse().getId();
         User student = userService.get(studentId);
@@ -76,7 +94,30 @@ public class SubmissionService {
                             "'" + item.getTitle() + "' is group work; join a group first"));
             submission.setGroup(group);
         }
-        return submissions.save(submission);
+        // Store the file last, after all checks, so rejected hand-ins never reach the file store
+        if (file != null) {
+            submission.setFile(files.store("submissions/" + contentId, file));
+        }
+        Submission saved = submissions.save(submission);
+        // Sent to RabbitMQ only once this transaction has committed (see messaging.RabbitEventForwarder)
+        events.publishEvent(new SubmissionHandedIn(UUID.randomUUID(), now, saved.getId(), courseId, contentId,
+                item.getTitle(), studentId, saved.getGroup() != null ? saved.getGroup().getId() : null, saved.isLate()));
+        return saved;
+    }
+
+    /** The uploaded file of a submission, for downloading. */
+    @Transactional(readOnly = true)
+    public SubmissionFile openFile(Long submissionId) {
+        Submission submission = get(submissionId);
+        FileReference file = submission.getFile();
+        if (file == null || file.getStorageKey() == null) {
+            throw new NotFoundException("Submission " + submissionId + " has no file");
+        }
+        return new SubmissionFile(file, files.open(file));
+    }
+
+    /** A file's metadata together with its contents. The caller must close the stream. */
+    public record SubmissionFile(FileReference reference, InputStream content) {
     }
 
     @Transactional(readOnly = true)

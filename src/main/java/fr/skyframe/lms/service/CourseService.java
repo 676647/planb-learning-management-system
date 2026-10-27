@@ -4,12 +4,16 @@ import fr.skyframe.lms.domain.Course;
 import fr.skyframe.lms.domain.Enrollment;
 import fr.skyframe.lms.domain.Role;
 import fr.skyframe.lms.domain.User;
+import fr.skyframe.lms.events.UserEnrolled;
 import fr.skyframe.lms.repository.CourseRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import fr.skyframe.lms.repository.EnrollmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Business logic for US1 (course administration).
@@ -24,14 +28,17 @@ public class CourseService {
     private final UserService userService;
     private final ModuleService moduleService;
     private final GroupService groupService;
+    private final ApplicationEventPublisher events;
 
     public CourseService(CourseRepository courses, EnrollmentRepository enrollments,
-                         UserService userService, ModuleService moduleService, GroupService groupService) {
+                         UserService userService, ModuleService moduleService, GroupService groupService,
+                         ApplicationEventPublisher events) {
         this.courses = courses;
         this.enrollments = enrollments;
         this.userService = userService;
         this.moduleService = moduleService;
         this.groupService = groupService;
+        this.events = events;
     }
 
     /** Creates a course and enrolls the creator as its teacher. */
@@ -79,7 +86,10 @@ public class CourseService {
     public Enrollment enroll(Long courseId, String email, Role role) {
         Course course = get(courseId);
         User user = userService.getByEmail(email);
-        return enroll(user, course, role);
+        Enrollment enrollment = enroll(user, course, role);
+        events.publishEvent(new UserEnrolled(UUID.randomUUID(), Instant.now(),
+                course.getId(), course.getTitle(), user.getId(), role));
+        return enrollment;
     }
 
     @Transactional(readOnly = true)

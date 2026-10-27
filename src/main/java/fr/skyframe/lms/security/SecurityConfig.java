@@ -2,7 +2,6 @@ package fr.skyframe.lms.security;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -50,7 +49,6 @@ public class SecurityConfig {
                         .requestMatchers(antMatcher("/actuator/health")).permitAll()
                         // Spring's error page, so errors keep their real status instead of becoming 401
                         .requestMatchers(antMatcher("/error")).permitAll()
-                        .requestMatchers(PathRequest.toH2Console()).permitAll()   // dev database console
                         .anyRequest().authenticated())
                 // Validate "Authorization: Bearer <jwt>" headers on incoming requests
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
@@ -58,9 +56,7 @@ public class SecurityConfig {
                 // CSRF attacks rely on cookies being sent automatically. We use bearer tokens
                 // in a header instead of cookies, so CSRF protection is not needed.
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                // The H2 console is rendered in frames
-                .headers(h -> h.frameOptions(f -> f.sameOrigin()));
+                .cors(Customizer.withDefaults());
         return http.build();
     }
 

@@ -1,7 +1,10 @@
 package fr.skyframe.lms.service;
 
 import fr.skyframe.lms.domain.*;
+import fr.skyframe.lms.events.GradesPublished;
+import fr.skyframe.lms.events.SubmissionGraded;
 import fr.skyframe.lms.repository.EnrollmentRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import fr.skyframe.lms.repository.GradeRepository;
 import fr.skyframe.lms.repository.GradedContentRepository;
 import fr.skyframe.lms.repository.SubmissionRepository;
@@ -28,12 +31,13 @@ public class GradingService {
     private final ContentService contentService;
     private final UserService userService;
     private final EnrollmentRepository enrollments;
+    private final ApplicationEventPublisher events;
     private final Clock clock;
 
     public GradingService(GradeRepository grades, SubmissionRepository submissions,
                           GradedContentRepository gradedContents, SubmissionService submissionService,
                           ContentService contentService, UserService userService,
-                          EnrollmentRepository enrollments, Clock clock) {
+                          EnrollmentRepository enrollments, ApplicationEventPublisher events, Clock clock) {
         this.grades = grades;
         this.submissions = submissions;
         this.gradedContents = gradedContents;
@@ -41,6 +45,7 @@ public class GradingService {
         this.contentService = contentService;
         this.userService = userService;
         this.enrollments = enrollments;
+        this.events = events;
         this.clock = clock;
     }
 
@@ -60,7 +65,10 @@ public class GradingService {
         grade.setFeedback(feedback);
         grade.setGradedBy(teacher);
         grade.setGradedAt(clock.instant());
-        return grades.save(grade);
+        Grade saved = grades.save(grade);
+        events.publishEvent(new SubmissionGraded(UUID.randomUUID(), saved.getGradedAt(), submissionId,
+                item.getModule().getCourse().getId(), item.getId(), points, teacherId));
+        return saved;
     }
 
     @Transactional(readOnly = true)
@@ -73,6 +81,8 @@ public class GradingService {
         GradedContent item = contentService.getGraded(contentId);
         requireTeacher(item.getModule().getCourse().getId(), teacherId);
         item.setGradesPublished(published);
+        events.publishEvent(new GradesPublished(UUID.randomUUID(), clock.instant(),
+                item.getModule().getCourse().getId(), item.getId(), item.getTitle(), published));
         return item;
     }
 
@@ -137,11 +147,16 @@ public class GradingService {
                     ? Gradebook.Status.SUBMITTED   // don't reveal that grading is done before publishing
                     : entry.status();
             Grade grade = entry.submissionId() != null ? gradeBySubmission.get(entry.submissionId()) : null;
+            String fileName = allSubmissions.stream()
+                    .filter(s -> s.getId().equals(entry.submissionId()) && s.getFile() != null)
+                    .map(s -> s.getFile().getOriginalFilename())
+                    .findFirst().orElse(null);
             result.add(new StudentGrade(item.getId(), item.getTitle(), item.getType(), item.getDeadline(),
                     status, entry.late(),
                     visible && grade != null ? grade.getPoints() : null,
                     item.getMaxPoints(),
-                    visible && grade != null ? grade.getFeedback() : null));
+                    visible && grade != null ? grade.getFeedback() : null,
+                    entry.submissionId(), fileName));
         }
         return result;
     }

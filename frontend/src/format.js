@@ -31,3 +31,14 @@ export const STATUS_LABELS = {
   SUBMITTED: 'Submitted',
   GRADED: 'Graded',
 }
+
+/** 1536 -> "1.5 KB" */
+export function formatSize(bytes) {
+  if (bytes == null) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
+/** Must match lms.storage.allowed-extensions in the backend (the backend is what enforces it). */
+export const ALLOWED_FILE_TYPES = '.pdf,.doc,.docx,.odt,.txt,.md,.zip,.png,.jpg,.jpeg'

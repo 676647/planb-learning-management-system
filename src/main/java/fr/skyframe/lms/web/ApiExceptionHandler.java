@@ -4,10 +4,13 @@ import fr.skyframe.lms.service.ConflictException;
 import fr.skyframe.lms.service.ForbiddenException;
 import fr.skyframe.lms.service.InvalidCredentialsException;
 import fr.skyframe.lms.service.NotFoundException;
+import fr.skyframe.lms.storage.StorageException;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -41,6 +44,19 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ProblemDetail unauthorized(InvalidCredentialsException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail tooLarge(MaxUploadSizeExceededException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE, "The file is too large (max 20 MB)");
+    }
+
+    /** The file store (MongoDB) is down or failed. The details go to the log, not to the client. */
+    @ExceptionHandler(StorageException.class)
+    public ProblemDetail storageUnavailable(StorageException e) {
+        LoggerFactory.getLogger(ApiExceptionHandler.class).error("File storage error", e);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE,
+                "File storage is not available right now. Please try again later.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

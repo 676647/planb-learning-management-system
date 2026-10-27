@@ -26,14 +26,16 @@ public class ModuleService {
     private final CourseRepository courses;
     private final SubmissionRepository submissions;
     private final GradeRepository grades;
+    private final StoredFileService files;
 
     public ModuleService(CourseModuleRepository modules, ContentRepository contents, CourseRepository courses,
-                         SubmissionRepository submissions, GradeRepository grades) {
+                         SubmissionRepository submissions, GradeRepository grades, StoredFileService files) {
         this.modules = modules;
         this.contents = contents;
         this.courses = courses;
         this.submissions = submissions;
         this.grades = grades;
+        this.files = files;
     }
 
     /** Adds a new module at the end of the course. */
@@ -141,6 +143,7 @@ public class ModuleService {
     /** Deletes a module's contents, first removing their grades and submissions (which point to them). */
     private void deleteContentsOf(Long moduleId) {
         for (var content : contents.findByModuleIdOrderByPositionAsc(moduleId)) {
+            files.deleteFilesOfContent(content.getId());
             grades.deleteBySubmissionContentId(content.getId());
             submissions.deleteByContentId(content.getId());
         }

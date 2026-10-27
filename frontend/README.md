@@ -4,9 +4,11 @@ React + Vite single-page app for the LMS. It talks to the Spring Boot backend th
 
 ## Running it during development
 
-You need two terminals:
-
 ```bash
+# 0. Databases and message broker (from the project root, needs Docker):
+#    PostgreSQL :5432, MongoDB :27017, RabbitMQ :5672 (management UI :15672)
+docker compose up -d postgres mongo rabbitmq
+
 # 1. Backend (from the project root) – http://localhost:8080
 ./mvnw spring-boot:run
 
@@ -18,8 +20,22 @@ npm run dev
 Open http://localhost:5173. The Vite dev server forwards every `/api/...` request to
 Spring Boot on port 8080 (see `vite.config.js`), so the browser only talks to one origin.
 
-The backend uses an in-memory H2 database, so all data is gone when Spring Boot restarts:
-register again after a restart.
+Where the data lives:
+- **PostgreSQL** – users, courses, modules, submissions, grades, … (kept between restarts).
+- **MongoDB (GridFS)** – the uploaded files themselves. Only their name, type and size are in PostgreSQL.
+  To look inside, use MongoDB Compass or `docker compose exec mongo mongosh lms` and
+  `db.fs.files.find()`.
+
+Messaging: the backend publishes domain events (a hand-in, with a late flag; a submission
+graded; grades published; a user added to a course) to the RabbitMQ topic exchange `lms.events`.
+The notification service consumes them from the queue `lms.notifications` and creates the
+notifications shown on the dashboard. Watch the traffic in the RabbitMQ management UI at
+http://localhost:15672 (login `lms` / `lms`).
+
+To start over with empty databases: `docker compose down -v`, then step 0 again.
+
+The backend tests (`./mvnw test`) need none of these services: they use H2 in memory, an
+in-memory file store, and deliver events in-process instead of through RabbitMQ.
 
 ## Trying it out
 
