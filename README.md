@@ -1,6 +1,7 @@
 # Learning Management System
 
-
+## How to run
+docker compose up -d --build
 
 ## Getting started
 

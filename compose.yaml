@@ -1,17 +1,50 @@
+# The whole system in Docker – see DEPLOYMENT.md.
+#
+#   Everything:            docker compose up -d --build      → http://localhost:8080
+#   Only the services for local development (backend and frontend run from IntelliJ / npm):
+#                          docker compose up -d postgres mongo rabbitmq
+#   Stop:                  docker compose down               (data is kept in volumes)
+#   Stop and delete data:  docker compose down -v
+#
+#            browser
+#               │ :8080
+#          ┌────▼────┐   /api/*   ┌─────────┐
+#          │   web   ├───────────►│ backend │──► postgres, mongo, rabbitmq
+#          │ (nginx) │            │ (Spring)│
+#          └─────────┘            └─────────┘
+
 services:
+  # React frontend served by nginx, which forwards /api to the backend (frontend/nginx.conf)
   web:
-    container_name: learningManagementSystem
-    image: nginx:alpine
+    build: ./frontend
     ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: local
+      - "8080:80"
+    depends_on:
+      - backend
     restart: unless-stopped
 
-  # Databases and message broker for development. Start them (not the web service above) with:
-  #   docker compose up -d postgres mongo rabbitmq
-  # Data is kept in Docker volumes, so it survives restarts.
-  # Remove everything (including data) with:  docker compose down -v
+  # Spring Boot backend (Dockerfile in the project root). Not published on the host:
+  # browsers and API clients reach it through web, at http://localhost:8080/api/...
+  backend:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/lms
+      DB_USER: lms
+      DB_PASSWORD: lms
+      MONGODB_URI: mongodb://mongo:27017/lms?serverSelectionTimeoutMS=5000
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: lms
+      RABBITMQ_PASSWORD: lms
+      # For a real deployment, put a long random JWT_SECRET in a .env file next to this file
+      JWT_SECRET: ${JWT_SECRET:-docker-dev-secret-change-me-0123456789abcdef}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
 
   # PostgreSQL: the relational database (users, courses, submissions, grades, ...)
   postgres:
@@ -24,15 +57,25 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lms -d lms"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     restart: unless-stopped
 
   # MongoDB: the NoSQL store; uploaded files are kept in its GridFS
   mongo:
-    image: mongo:8.0
+    image: mongo:7.0
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     restart: unless-stopped
 
   # RabbitMQ: message broker for domain events (exchange "lms.events")
@@ -48,6 +91,11 @@ services:
       - "127.0.0.1:15672:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
     restart: unless-stopped
 
 volumes:
