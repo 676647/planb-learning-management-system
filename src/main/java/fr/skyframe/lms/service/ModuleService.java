@@ -5,8 +5,6 @@ import fr.skyframe.lms.domain.CourseModule;
 import fr.skyframe.lms.repository.ContentRepository;
 import fr.skyframe.lms.repository.CourseModuleRepository;
 import fr.skyframe.lms.repository.CourseRepository;
-import fr.skyframe.lms.repository.GradeRepository;
-import fr.skyframe.lms.repository.SubmissionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,18 +22,14 @@ public class ModuleService {
     private final CourseModuleRepository modules;
     private final ContentRepository contents;
     private final CourseRepository courses;
-    private final SubmissionRepository submissions;
-    private final GradeRepository grades;
-    private final StoredFileService files;
+    private final ContentDataCleaner cleaner;
 
     public ModuleService(CourseModuleRepository modules, ContentRepository contents, CourseRepository courses,
-                         SubmissionRepository submissions, GradeRepository grades, StoredFileService files) {
+                         ContentDataCleaner cleaner) {
         this.modules = modules;
         this.contents = contents;
         this.courses = courses;
-        this.submissions = submissions;
-        this.grades = grades;
-        this.files = files;
+        this.cleaner = cleaner;
     }
 
     /** Adds a new module at the end of the course. */
@@ -140,12 +134,10 @@ public class ModuleService {
         }
     }
 
-    /** Deletes a module's contents, first removing their grades and submissions (which point to them). */
+    /** Deletes a module's contents, first removing everything that points to them. */
     private void deleteContentsOf(Long moduleId) {
         for (var content : contents.findByModuleIdOrderByPositionAsc(moduleId)) {
-            files.deleteFilesOfContent(content.getId());
-            grades.deleteBySubmissionContentId(content.getId());
-            submissions.deleteByContentId(content.getId());
+            cleaner.deleteDataOf(content.getId());
         }
         contents.deleteByModuleId(moduleId);
     }

@@ -28,10 +28,12 @@ public class CourseAccess {
     private final ContentRepository contents;
     private final StudentGroupRepository groups;
     private final SubmissionRepository submissions;
+    private final QuestionRepository questions;
 
     public CourseAccess(CurrentUser currentUser, EnrollmentRepository enrollments, CourseRepository courses,
                         CourseModuleRepository modules, ContentRepository contents,
-                        StudentGroupRepository groups, SubmissionRepository submissions) {
+                        StudentGroupRepository groups, SubmissionRepository submissions,
+                        QuestionRepository questions) {
         this.currentUser = currentUser;
         this.enrollments = enrollments;
         this.courses = courses;
@@ -39,6 +41,7 @@ public class CourseAccess {
         this.contents = contents;
         this.groups = groups;
         this.submissions = submissions;
+        this.questions = questions;
     }
 
     // --- courses ---
@@ -70,6 +73,13 @@ public class CourseAccess {
 
     public boolean isMemberOfContent(Long contentId) {
         return isMemberOfCourse(courseOfContent(contentId));
+    }
+
+    /** Only teachers of the quiz's course may change its questions. */
+    public boolean isTeacherOfQuestion(Long questionId) {
+        return isTeacherOfContent(questions.findById(questionId)
+                .orElseThrow(() -> new NotFoundException("Question " + questionId + " not found"))
+                .getQuiz().getId());
     }
 
     // --- groups ---

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,6 +40,7 @@ class SubmissionGradingServiceTests {
     @Autowired GroupService groupService;
     @Autowired SubmissionService submissionService;
     @Autowired GradingService gradingService;
+    @Autowired QuizService quizService;
     @Autowired EntityManager entityManager;
 
     User teacher, anna, bob, carl;
@@ -113,13 +115,29 @@ class SubmissionGradingServiceTests {
         quiz.setTitle("Warm-up");
         quiz.setMaxAttempts(2);
         quiz = contentService.add(week1.getId(), quiz);
-
-        submissionService.submit(quiz.getId(), anna.getId(), "attempt 1");
-        submissionService.submit(quiz.getId(), anna.getId(), "attempt 2");
+        MultipleChoiceQuestion question = new MultipleChoiceQuestion();
+        question.setPrompt("Which is a relational database?");
+        question.setOptions(List.of("PostgreSQL", "MongoDB"));
+        question.setCorrectOptions(java.util.Set.of(0));
+        quizService.addQuestion(quiz.getId(), question);
         Long quizId = quiz.getId();
+        Map<Long, List<String>> answers = Map.of(question.getId(), List.of("1"));
 
-        assertThatThrownBy(() -> submissionService.submit(quizId, anna.getId(), "attempt 3"))
+        quizService.attempt(quizId, anna.getId(), answers);
+        quizService.attempt(quizId, anna.getId(), answers);
+
+        assertThatThrownBy(() -> quizService.attempt(quizId, anna.getId(), answers))
                 .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void quizzesCannotBeHandedInAsText() {
+        Quiz quiz = new Quiz();
+        quiz.setTitle("Warm-up");
+        Quiz saved = contentService.add(week1.getId(), quiz);
+
+        assertThatThrownBy(() -> submissionService.submit(saved.getId(), anna.getId(), "my answers"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

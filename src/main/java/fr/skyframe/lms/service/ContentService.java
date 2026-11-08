@@ -5,8 +5,6 @@ import fr.skyframe.lms.domain.CourseModule;
 import fr.skyframe.lms.domain.GradedContent;
 import fr.skyframe.lms.domain.Quiz;
 import fr.skyframe.lms.repository.ContentRepository;
-import fr.skyframe.lms.repository.GradeRepository;
-import fr.skyframe.lms.repository.SubmissionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,19 +20,15 @@ import java.util.Set;
 public class ContentService {
 
     private final ContentRepository contents;
-    private final SubmissionRepository submissions;
-    private final GradeRepository grades;
     private final ModuleService moduleService;
-    private final StoredFileService files;
+    private final ContentDataCleaner cleaner;
     private final Clock clock;
 
-    public ContentService(ContentRepository contents, SubmissionRepository submissions, GradeRepository grades,
-                          ModuleService moduleService, StoredFileService files, Clock clock) {
+    public ContentService(ContentRepository contents, ModuleService moduleService, ContentDataCleaner cleaner,
+                          Clock clock) {
         this.contents = contents;
-        this.submissions = submissions;
-        this.grades = grades;
         this.moduleService = moduleService;
-        this.files = files;
+        this.cleaner = cleaner;
         this.clock = clock;
     }
 
@@ -106,12 +100,10 @@ public class ContentService {
         return contents.findByModuleIdOrderByPositionAsc(moduleId);
     }
 
-    /** Deletes an item together with its submissions and grades. */
+    /** Deletes an item together with its submissions, grades, files and (for quizzes) questions. */
     public void delete(Long id) {
         Content content = get(id);
-        files.deleteFilesOfContent(id);
-        grades.deleteBySubmissionContentId(id);
-        submissions.deleteByContentId(id);
+        cleaner.deleteDataOf(id);
         contents.delete(content);
     }
 

@@ -62,6 +62,19 @@ public class SubmissionService {
             throw new IllegalArgumentException("Hand in an answer, a file, or both");
         }
         GradedContent item = contentService.getGraded(contentId);
+        if (item instanceof Quiz) {
+            throw new IllegalArgumentException("Quizzes are answered question by question, not handed in as text");
+        }
+        return createSubmission(item, studentId, answer, file);
+    }
+
+    /**
+     * Checks the rules (student of the course, visible, deadline, attempts, group) and saves the
+     * submission. Used by submit() above and by QuizService for quiz attempts.
+     * Public on purpose: Spring's transaction proxies only reliably handle public methods.
+     */
+    public Submission createSubmission(GradedContent item, Long studentId, String answer, UploadedFile file) {
+        Long contentId = item.getId();
         Long courseId = item.getModule().getCourse().getId();
         User student = userService.get(studentId);
 

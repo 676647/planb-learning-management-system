@@ -71,6 +71,21 @@ public class GradingService {
         return saved;
     }
 
+    /** A grade given by the system (quizzes), not by a teacher. */
+    public Grade autoGrade(Submission submission, double points, String feedback) {
+        Grade grade = grades.findBySubmissionId(submission.getId()).orElseGet(Grade::new);
+        grade.setSubmission(submission);
+        grade.setPoints(points);
+        grade.setFeedback(feedback);
+        grade.setGradedBy(null);
+        grade.setGradedAt(clock.instant());
+        Grade saved = grades.save(grade);
+        GradedContent item = submission.getContent();
+        events.publishEvent(new SubmissionGraded(UUID.randomUUID(), saved.getGradedAt(), submission.getId(),
+                item.getModule().getCourse().getId(), item.getId(), points, null));
+        return saved;
+    }
+
     @Transactional(readOnly = true)
     public Optional<Grade> gradeOf(Long submissionId) {
         return grades.findBySubmissionId(submissionId);
@@ -163,14 +178,21 @@ public class GradingService {
 
     /**
      * Finds the submission that counts for a student on an item: their own latest submission,
-     * or their group's latest submission for group work.
+     * or their group's latest submission for group work. For quizzes the best attempt counts.
      */
     private Gradebook.Entry entryFor(User student, GradedContent item, List<Submission> allSubmissions,
                                      Map<Long, Grade> gradeBySubmission) {
+        Comparator<Submission> newest = Comparator.comparing(Submission::getSubmittedAt).thenComparing(Submission::getId);
+        Comparator<Submission> whichCounts = item instanceof Quiz
+                ? Comparator.<Submission>comparingDouble(s -> {
+                            Grade g = gradeBySubmission.get(s.getId());
+                            return g == null ? -1 : g.getPoints();
+                        }).thenComparing(newest)
+                : newest;
         Optional<Submission> latest = allSubmissions.stream()
                 .filter(s -> s.getContent().getId().equals(item.getId()))
                 .filter(s -> s.countsFor(student.getId()))
-                .max(Comparator.comparing(Submission::getSubmittedAt).thenComparing(Submission::getId));
+                .max(whichCounts);
         if (latest.isEmpty()) {
             return new Gradebook.Entry(item.getId(), Gradebook.Status.NOT_SUBMITTED, false, null, null);
         }

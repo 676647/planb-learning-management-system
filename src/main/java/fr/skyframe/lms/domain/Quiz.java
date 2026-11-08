@@ -4,9 +4,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 /**
- * An interactive quiz. Attempts are graded automatically.
- * Questions (multiple choice, ordering, matching, fill-in-the-blanks) will be added as a
- * separate entity in a later step.
+ * An interactive quiz made of questions (multiple choice, ordering, matching, fill in the blanks).
+ * Attempts are graded automatically by QuizService; the best attempt counts.
+ * Results are shown to students right away, so gradesPublished starts as true for quizzes.
  */
 @Entity
 @DiscriminatorValue("QUIZ")
@@ -17,6 +17,10 @@ public class Quiz extends GradedContent {
 
     /** Whether hints are shown when an answer is wrong. */
     private Boolean showHints = false;
+
+    public Quiz() {
+        setGradesPublished(true);
+    }
 
     @Override
     public ContentType getType() {

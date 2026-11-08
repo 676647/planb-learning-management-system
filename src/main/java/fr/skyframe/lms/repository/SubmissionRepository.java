@@ -14,5 +14,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
 
     long countByContentIdAndSubmittedById(Long contentId, Long userId);
 
+    boolean existsByContentId(Long contentId);
+
+    List<Submission> findByContentIdAndSubmittedByIdOrderBySubmittedAtDescIdDesc(Long contentId, Long userId);
+
     void deleteByContentId(Long contentId);
 }

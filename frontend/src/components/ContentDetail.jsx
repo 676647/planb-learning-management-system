@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
 import { api } from '../api.js'
 import { useApiData } from '../useApiData.js'
+import QuizEditor from './quiz/QuizEditor.jsx'
+import QuizStudent from './quiz/QuizStudent.jsx'
 import { ALLOWED_FILE_TYPES, CONTENT_TYPES, STATUS_LABELS, formatDateTime, formatSize, isGraded, isLink } from '../format.js'
 
 /**
@@ -9,6 +11,9 @@ import { ALLOWED_FILE_TYPES, CONTENT_TYPES, STATUS_LABELS, formatDateTime, forma
  */
 export default function ContentDetail({ item, course, isTeacher, onBack }) {
     const type = CONTENT_TYPES[item.type]
+    // A quiz's max points is the sum of its questions; the editor reports it when questions change
+    const [quizPoints, setQuizPoints] = useState(null)
+    const maxPoints = quizPoints ?? item.maxPoints
 
     return (
         <div className="content-detail">
@@ -22,7 +27,7 @@ export default function ContentDetail({ item, course, isTeacher, onBack }) {
                 {isGraded(item) && <>
                     <dt>Deadline</dt><dd>{formatDateTime(item.deadline)}</dd>
                     <dt>Late submissions</dt><dd>{item.lateSubmissionsAllowed ? 'Accepted (flagged as late)' : 'Not accepted'}</dd>
-                    {item.maxPoints != null && <><dt>Max points</dt><dd>{item.maxPoints}</dd></>}
+                    {maxPoints != null && <><dt>Max points</dt><dd>{maxPoints}</dd></>}
                 </>}
                 {item.type === 'QUIZ' && <><dt>Attempts</dt><dd>{item.maxAttempts}</dd></>}
                 {item.groupWork && <><dt>Work form</dt><dd>Group work: one submission per group</dd></>}
@@ -35,7 +40,10 @@ export default function ContentDetail({ item, course, isTeacher, onBack }) {
             {item.body && <div className="page-body">{item.body}</div>}
             {item.description && <div className="page-body">{item.description}</div>}
 
-            {isGraded(item) && (isTeacher
+            {item.type === 'QUIZ' && (isTeacher
+                ? <><QuizEditor item={item} onTotalChange={setQuizPoints} /><TeacherSubmissions item={item} /></>
+                : <QuizStudent item={item} />)}
+            {isGraded(item) && item.type !== 'QUIZ' && (isTeacher
                 ? <TeacherSubmissions item={item} />
                 : <StudentSubmission item={item} course={course} />)}
         </div>

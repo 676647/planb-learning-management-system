@@ -153,6 +153,14 @@ export const api = {
   gradebook: (courseId) => get(`/courses/${courseId}/gradebook`),
   myGrades: (courseId) => get(`/courses/${courseId}/my-grades`),
 
+  // quizzes (kind is one of: multiple-choice, ordering, matching, fill-in-blanks)
+  quizQuestions: (quizId) => get(`/contents/${quizId}/questions`),                  // teachers: with solutions
+  addQuestion: (quizId, kind, question) => post(`/contents/${quizId}/questions/${kind}`, question),
+  deleteQuestion: (questionId) => del(`/questions/${questionId}`),
+  quizForStudent: (quizId) => get(`/contents/${quizId}/questions/student-view`),   // no solutions
+  attemptQuiz: (quizId, answers) => post(`/contents/${quizId}/attempts`, { answers }),
+  myQuizAttempts: (quizId) => get(`/contents/${quizId}/attempts/mine`),
+
   // notifications (created from RabbitMQ domain events)
   notifications: () => get('/notifications'),
   markNotificationRead: (id) => put(`/notifications/${id}/read`),
