@@ -9,7 +9,8 @@ export default defineConfig({
     // The dev server forwards every /api request to Spring Boot, so the browser only
     // ever talks to one origin (no CORS problems).
     proxy: {
-      '/api': 'http://localhost:8080',
+      // ws: true also forwards WebSocket connections (live quizzes use /api/ws)
+      '/api': { target: 'http://localhost:8080', ws: true },
     },
   },
 })

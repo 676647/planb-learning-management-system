@@ -190,7 +190,8 @@ public class QuizService {
                 quiz.getMaxPoints(), showCorrect, results);
     }
 
-    private StudentQuestion toStudentView(Question q) {
+    /** One question as students see it (also used by live quizzes). */
+    public StudentQuestion toStudentView(Question q) {
         return switch (q) {
             case MultipleChoiceQuestion mc -> new StudentQuestion(q.getId(), q.getPosition(), q.getType(),
                     q.getPrompt(), q.getPoints(), List.copyOf(mc.getOptions()), mc.multipleAnswers(),

@@ -3,6 +3,7 @@ import { api } from '../api.js'
 import { useApiData } from '../useApiData.js'
 import QuizEditor from './quiz/QuizEditor.jsx'
 import QuizStudent from './quiz/QuizStudent.jsx'
+import { LiveHostCard } from '../live/LiveEntry.jsx'
 import { ALLOWED_FILE_TYPES, CONTENT_TYPES, STATUS_LABELS, formatDateTime, formatSize, isGraded, isLink } from '../format.js'
 
 /**
@@ -41,7 +42,7 @@ export default function ContentDetail({ item, course, isTeacher, onBack }) {
             {item.description && <div className="page-body">{item.description}</div>}
 
             {item.type === 'QUIZ' && (isTeacher
-                ? <><QuizEditor item={item} onTotalChange={setQuizPoints} /><TeacherSubmissions item={item} /></>
+                ? <><QuizEditor item={item} onTotalChange={setQuizPoints} /><LiveHostCard item={item} course={course} /><TeacherSubmissions item={item} /></>
                 : <QuizStudent item={item} />)}
             {isGraded(item) && item.type !== 'QUIZ' && (isTeacher
                 ? <TeacherSubmissions item={item} />

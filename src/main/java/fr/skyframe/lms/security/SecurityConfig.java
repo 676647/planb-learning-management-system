@@ -47,6 +47,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(antMatcher(HttpMethod.POST, "/api/auth/**")).permitAll()
                         .requestMatchers(antMatcher("/actuator/health")).permitAll()
+                        // The WebSocket handshake for live quizzes. Browsers can't send the token here,
+                        // so it is checked on the STOMP CONNECT frame instead (StompAuthInterceptor).
+                        .requestMatchers(antMatcher("/api/ws/**")).permitAll()
                         // Spring's error page, so errors keep their real status instead of becoming 401
                         .requestMatchers(antMatcher("/error")).permitAll()
                         .anyRequest().authenticated())

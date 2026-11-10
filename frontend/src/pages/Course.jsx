@@ -4,6 +4,7 @@ import CourseContent from '../components/CourseContent.jsx'
 import Participants from '../components/Participants.jsx'
 import Grades from '../components/Grades.jsx'
 import Groups from '../components/Groups.jsx'
+import { LiveBanner } from '../live/LiveEntry.jsx'
 
 const TABS = ['Course', 'Participants', 'Grades', 'Groups']
 
@@ -33,6 +34,8 @@ export default function Course({ enrollment, user, onBackToDashboard }) {
                     You are {isTeacher ? 'a teacher' : 'a student'} in this course
                 </span>
             </header>
+
+            <LiveBanner course={course} user={user} />
 
             <div className="course-tabs-bar">
                 {TABS.map(name => (

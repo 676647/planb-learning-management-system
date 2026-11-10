@@ -35,6 +35,9 @@ services:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_USER: lms
       RABBITMQ_PASSWORD: lms
+      # The first admin (decides who is a teacher). Change the password, e.g. in a .env file
+      LMS_ADMIN_EMAIL: ${LMS_ADMIN_EMAIL:-admin@lms.local}
+      LMS_ADMIN_PASSWORD: ${LMS_ADMIN_PASSWORD:-admin-password}
       # For a real deployment, put a long random JWT_SECRET in a .env file next to this file
       JWT_SECRET: ${JWT_SECRET:-docker-dev-secret-change-me-0123456789abcdef}
     depends_on:
@@ -62,9 +65,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+      start_period: 30s   # grace period while the container starts (e.g. during image builds)
     restart: unless-stopped
 
   # MongoDB: the NoSQL store; uploaded files are kept in its GridFS
+  # Version 7.0 on purpose: MongoDB 8.0 refuses to start on Linux kernel 6.19+ (SERVER-121912),
+  # which newer Docker Desktop versions use. 7.0 is not affected; the app works the same on both.
   mongo:
     image: mongo:7.0
     ports:
@@ -73,9 +79,10 @@ services:
       - mongo-data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+      interval: 10s
+      timeout: 15s        # mongosh takes a few seconds to start on a busy machine
+      retries: 10
+      start_period: 40s
     restart: unless-stopped
 
   # RabbitMQ: message broker for domain events (exchange "lms.events")
@@ -94,8 +101,9 @@ services:
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
-      timeout: 10s
-      retries: 20
+      timeout: 15s
+      retries: 10
+      start_period: 40s
     restart: unless-stopped
 
 volumes:

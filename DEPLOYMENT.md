@@ -10,6 +10,10 @@ docker compose up -d --build
 Then open **http://localhost:8080**. The first build takes a few minutes, because it downloads
 the Maven and npm dependencies and the base images. Later builds reuse the cached layers.
 
+**Accounts.** New accounts are students. Only teachers (and admins) can create courses, and only
+an admin decides who is a teacher, on the **Admin** page. The first admin is created on startup: log in as `admin@lms.local` /
+`admin-password` (set `LMS_ADMIN_EMAIL` and `LMS_ADMIN_PASSWORD` to change it).
+
 Stop with `docker compose down`. Your data stays in Docker volumes; `docker compose down -v`
 deletes it as well.
 
@@ -32,11 +36,13 @@ deletes it as well.
 | `web` | built from `frontend/Dockerfile` | nginx serving the built React app; forwards `/api/*` to `backend` |
 | `backend` | built from `Dockerfile` | Spring Boot REST API |
 | `postgres` | `postgres:17` | relational database |
-| `mongo` | `mongo:8.0` | NoSQL store for uploaded files (GridFS) |
+| `mongo` | `mongo:7.0` | NoSQL store for uploaded files (GridFS). Not 8.0: it refuses to start on the Linux kernel used by newer Docker Desktop versions (MongoDB issue SERVER-121912) |
 | `rabbitmq` | `rabbitmq:4-management` | message broker for domain events |
 
 How it fits together:
 
+- **WebSockets.** Live quizzes (see `LIVE_QUIZ.md`) keep a WebSocket open at `/api/ws`.
+  nginx passes the connection upgrade on to the backend and keeps it open for up to an hour.
 - **One origin.** The browser only talks to `web`. nginx serves the app and passes every `/api/...`
   request on to the backend, the same way the Vite dev server does during development. So there
   are no CORS issues, and the backend doesn't need to be reachable from outside. Third-party API
@@ -68,6 +74,9 @@ The passwords in `compose.yaml` are for development only. On a server:
 
 - Put a long random `JWT_SECRET` in a `.env` file next to `compose.yaml` (`compose.yaml` already
   reads it). Generate one with `openssl rand -base64 48`.
+- Set `LMS_ADMIN_PASSWORD` (and `LMS_ADMIN_EMAIL`) in the `.env` file, so the first admin doesn't
+  get the development password. Log in once and the account is there; changing the variables later
+  doesn't change an existing account's password.
 - Change the PostgreSQL and RabbitMQ passwords, in their own service and in the `backend` settings.
 - Serve the site over HTTPS, for example with a reverse proxy such as Caddy or Traefik in front of
   `web`.

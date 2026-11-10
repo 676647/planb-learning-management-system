@@ -1,0 +1,128 @@
+/* Live quiz: big, bold and readable on a projector and on a phone */
+.live-page {
+  --live-bg: #2e1065;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: radial-gradient(circle at 20% 0%, #5b21b6 0%, var(--live-bg) 60%);
+  color: #fff;
+  padding: 16px 24px 40px;
+  display: flex;
+  flex-direction: column;
+}
+.live-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.live-title { font-weight: 800; font-size: 1.2rem; margin-right: auto; }
+.live-progress, .live-pin-small { background: rgba(255, 255, 255, 0.15); padding: 4px 12px; border-radius: 999px; }
+.live-main { flex: 1; display: flex; flex-direction: column; align-items: stretch; gap: 20px; max-width: 1000px;
+  width: 100%; margin: 24px auto 0; }
+.live-main.center { align-items: center; text-align: center; justify-content: center; }
+
+.live-btn { background: #fff; color: #2e1065; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700;
+  font-size: 1rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25); }
+.live-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.live-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.live-btn.big { font-size: 1.3rem; padding: 14px 36px; align-self: center; }
+.live-btn.subtle { background: rgba(255, 255, 255, 0.15); color: #fff; box-shadow: none; }
+.live-error { background: #fee2e2; color: #991b1b; padding: 8px 12px; border-radius: 8px; max-width: 1000px;
+  margin: 12px auto 0; width: 100%; box-sizing: border-box; }
+
+/* Shown while the WebSocket is down (the page then polls the REST API) */
+.live-offline { background: rgba(250, 204, 21, 0.2); border: 1px solid rgba(250, 204, 21, 0.6); padding: 6px 12px;
+  border-radius: 8px; max-width: 1000px; margin: 12px auto 0; width: 100%; box-sizing: border-box; font-size: 0.9rem; }
+
+/* Lobby */
+.live-join-box { background: #fff; color: #1e1b4b; border-radius: 16px; padding: 20px 32px; text-align: center;
+  align-self: center; box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25); }
+.live-join-box p { margin: 0 0 4px; font-weight: 600; }
+.live-pin { font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 900; letter-spacing: 0.08em; line-height: 1.1; }
+.live-count { font-size: 1.2rem; font-weight: 700; text-align: center; margin: 0; }
+.live-players { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.live-players li { background: rgba(255, 255, 255, 0.18); padding: 8px 16px; border-radius: 8px; font-weight: 700;
+  animation: live-pop 0.3s ease-out; }
+@keyframes live-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Question */
+.live-question-header { display: flex; align-items: center; gap: 20px; }
+.live-question-header .live-prompt { flex: 1; }
+.live-prompt { background: #fff; color: #1e1b4b; border-radius: 12px; padding: 16px 20px; margin: 0;
+  font-size: clamp(1.2rem, 3vw, 2rem); text-align: center; }
+.live-timer { --share: 1; width: 72px; height: 72px; flex-shrink: 0; border-radius: 50%; display: grid;
+  place-items: center; font-size: 1.8rem; font-weight: 900; color: #2e1065;
+  background: conic-gradient(#fff calc(var(--share) * 360deg), rgba(255, 255, 255, 0.25) 0); }
+.live-timer.urgent { color: #b91c1c; animation: live-pulse 1s infinite; }
+@keyframes live-pulse { 50% { transform: scale(1.08); } }
+.live-instruction { font-size: 1.3rem; text-align: center; background: rgba(0, 0, 0, 0.2); padding: 16px; border-radius: 12px; }
+.live-blank { display: inline-block; min-width: 3em; border-bottom: 3px solid #fff; margin: 0 4px; }
+.live-host-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.live-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.live-tile { display: flex; align-items: center; gap: 12px; min-height: 80px; padding: 12px 18px; border-radius: 10px;
+  border: none; color: #fff; font-size: 1.25rem; font-weight: 700; text-align: left; position: relative;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.3); font-family: inherit; }
+button.live-tile { cursor: pointer; }
+button.live-tile:hover:not(:disabled) { filter: brightness(1.1); }
+.live-tile .shape { font-size: 1.6rem; }
+.live-tile.red { background: #e21b3c; }
+.live-tile.blue { background: #1368ce; }
+.live-tile.yellow { background: #c48a00; }
+.live-tile.green { background: #26890c; }
+.live-tile.chosen { outline: 5px solid #fff; outline-offset: -5px; }
+.live-tile.wrong { opacity: 0.4; }
+.live-tile.correct { outline: 5px solid #fff; outline-offset: -5px; }
+.live-tile-count { margin-left: auto; display: flex; align-items: center; gap: 8px; min-width: 90px; justify-content: flex-end; }
+.live-tile-count .bar { display: inline-block; height: 10px; background: rgba(255, 255, 255, 0.85); border-radius: 5px; max-width: 60px; }
+
+/* A player's input for ordering, matching and blanks: the normal quiz controls on a white card */
+.live-input { background: #fff; color: #1e1b4b; border-radius: 12px; padding: 16px 20px; }
+
+/* Reveal and results */
+.live-big { font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 900; margin: 0; color: #fff; }
+.feedback { padding: 16px 32px; border-radius: 12px; }
+.feedback.correct { background: #26890c; }
+.feedback.partly { background: #c48a00; }
+.feedback.wrong { background: #e21b3c; }
+.feedback.none { background: rgba(255, 255, 255, 0.15); }
+.live-score { font-size: 1.3rem; font-weight: 700; margin: 0; }
+.live-waiting { opacity: 0.85; font-size: 1.1rem; margin: 0; }
+.live-correct { background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 12px 20px; font-size: 1.2rem; text-align: center; }
+.live-correct p { margin: 4px 0; }
+
+.live-leaderboard { list-style: none; padding: 0; margin: 0 auto; width: 100%; max-width: 520px; display: flex;
+  flex-direction: column; gap: 8px; }
+.live-leaderboard li { display: flex; justify-content: space-between; background: #fff; color: #1e1b4b;
+  padding: 10px 16px; border-radius: 8px; font-size: 1.15rem; font-weight: 700; }
+
+.live-results { width: 100%; display: flex; flex-direction: column; gap: 20px; align-items: center; }
+.live-results h2 { margin: 0; font-size: 2rem; color: #fff; }
+.live-podium { display: flex; align-items: flex-end; justify-content: center; gap: 12px; width: 100%; max-width: 600px; }
+.podium-step { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  gap: 6px; padding: 14px 8px; border-radius: 12px 12px 0 0; background: rgba(255, 255, 255, 0.2); font-weight: 800;
+  animation: live-rise 0.6s ease-out both; }
+.podium-step.place-1 { min-height: 200px; background: #c48a00; animation-delay: 0.6s; }
+.podium-step.place-2 { min-height: 150px; background: #94a3b8; animation-delay: 0.3s; }
+.podium-step.place-3 { min-height: 110px; background: #b45309; }
+.podium-name { font-size: 1.2rem; text-align: center; word-break: break-word; }
+.podium-score { font-size: 1.5rem; }
+@keyframes live-rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 640px) {
+  .live-page { padding: 12px 16px 32px; }
+  .live-tiles { grid-template-columns: 1fr; }
+  .live-tile { min-height: 64px; font-size: 1.1rem; }
+  .live-question-header { flex-direction: column-reverse; }
+  .live-host-actions { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-players li, .podium-step, .live-timer.urgent { animation: none; }
+}
+
+/* ---------- Entry points outside the live screen ---------- */
+.live-join-card { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #2e1065; color: #fff;
+  border-radius: 12px; padding: 12px 16px; margin-bottom: 20px; }
+.live-join-card strong { margin-right: auto; }
+.live-join-card input { width: 9em; margin: 0; letter-spacing: 0.1em; font-weight: 700; }
+.live-join-card .form-error { width: 100%; margin: 0; color: #fecaca; }
+.live-banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #2e1065; color: #fff;
+  border-radius: 12px; padding: 12px 16px; margin: 0 0 16px; animation: live-pop 0.3s ease-out; }
+.live-banner span { margin-right: auto; }
+.live-host-card select { margin: 0 8px; }
+.live-host-card .live-sessions { margin: 12px 0 0; padding-left: 20px; }

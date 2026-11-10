@@ -4,6 +4,7 @@ import { api } from '../api.js'
 import { useApiData } from '../useApiData.js'
 import Notifications from '../components/Notifications.jsx'
 import Admin from './Admin.jsx'
+import { JoinLiveCard } from '../live/LiveEntry.jsx'
 
 const ACCOUNT_BADGES = {
     TEACHER: { label: 'Teacher', className: 'role-teacher' },
@@ -49,6 +50,8 @@ export default function Dashboard({ user, onLogout, onSelectCourse, onUserChange
             {showAdmin ? <Admin user={user} /> : <>
 
             <Notifications enrollments={enrollments} onOpenCourse={onSelectCourse} />
+
+            <JoinLiveCard />
 
             <div className="section-header">
                 <h2 className="section-title">Your classes</h2>

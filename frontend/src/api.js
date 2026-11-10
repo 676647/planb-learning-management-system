@@ -31,6 +31,11 @@ export function hasToken() {
   return !!token
 }
 
+/** The JWT, for the live quiz WebSocket (live/liveSocket.js), which sends it in its CONNECT frame. */
+export function getToken() {
+  return token
+}
+
 /** Called when the backend says our token is no longer valid (e.g. expired). */
 export function setUnauthorizedHandler(handler) {
   onUnauthorized = handler
@@ -166,6 +171,17 @@ export const api = {
   myQuizAttempts: (quizId) => get(`/contents/${quizId}/attempts/mine`),
 
   // notifications (created from RabbitMQ domain events)
+  // live quizzes: commands go here, updates arrive over the WebSocket (live/liveSocket.js)
+  hostLive: (quizId, secondsPerQuestion) => post(`/contents/${quizId}/live`, { secondsPerQuestion }),
+  liveSessions: (quizId) => get(`/contents/${quizId}/live-sessions`),
+  courseLive: (courseId) => get(`/courses/${courseId}/live`),
+  joinLive: (pin) => post('/live/join', { pin }),
+  liveGame: (gameId) => get(`/live/${gameId}`),
+  answerLive: (gameId, questionNumber, answer) => post(`/live/${gameId}/answers`, { questionNumber, answer }),
+  liveNext: (gameId) => post(`/live/${gameId}/next`),
+  liveReveal: (gameId) => post(`/live/${gameId}/reveal`),
+  liveEnd: (gameId) => post(`/live/${gameId}/end`),
+
   notifications: () => get('/notifications'),
   markNotificationRead: (id) => put(`/notifications/${id}/read`),
   markAllNotificationsRead: () => put('/notifications/read-all'),
