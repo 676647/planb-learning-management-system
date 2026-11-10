@@ -1,10 +1,12 @@
 package fr.skyframe.lms.web.dto;
 
+import fr.skyframe.lms.domain.AccountRole;
 import fr.skyframe.lms.domain.User;
 
-public record UserResponse(Long id, String email, String name) {
+/** accountRole: STUDENT, TEACHER (may create courses) or ADMIN. */
+public record UserResponse(Long id, String email, String name, AccountRole accountRole) {
 
     public static UserResponse from(User user) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getName());
+        return new UserResponse(user.getId(), user.getEmail(), user.getName(), user.getAccountRole());
     }
 }

@@ -1,5 +1,6 @@
 package fr.skyframe.lms.security;
 
+import fr.skyframe.lms.domain.AccountRole;
 import fr.skyframe.lms.domain.Role;
 import fr.skyframe.lms.domain.Submission;
 import fr.skyframe.lms.repository.*;
@@ -8,12 +9,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The per-course permission rules, used in @PreAuthorize annotations on the controllers, e.g.
+ * The permission rules, used in @PreAuthorize annotations on the controllers, e.g.
  * {@code @PreAuthorize("@access.isTeacherOfCourse(#id)")}.
  *
  * Roles are assigned per course (the same user can teach one course and take another), so
  * every rule first finds the course that a module/content/group/submission belongs to and
  * then checks the logged-in user's enrollment in that course.
+ *
+ * Two account-wide rules come first: who may create courses (teachers and admins)
+ * and who is an admin. They are read from the database on every request, so a role change
+ * takes effect immediately, without logging in again.
  *
  * An unknown id throws NotFoundException, so the client gets 404 rather than 403.
  */
@@ -42,6 +47,17 @@ public class CourseAccess {
         this.groups = groups;
         this.submissions = submissions;
         this.questions = questions;
+    }
+
+    // --- account-wide roles ---
+
+    /** Teachers and admins may create courses. */
+    public boolean canCreateCourses() {
+        return currentUser.get().getAccountRole().canCreateCourses();
+    }
+
+    public boolean isAdmin() {
+        return currentUser.get().getAccountRole() == AccountRole.ADMIN;
     }
 
     // --- courses ---

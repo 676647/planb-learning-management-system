@@ -19,7 +19,7 @@ class NotificationApiTests extends ApiTestSupport {
 
     @Test
     void enrolledUserIsNotified() throws Exception {
-        TestUser teacher = registerAndLogin("notif-teacher1@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("notif-teacher1@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("notif-student1@hvl.no", "Sam Student");
         courseWithStudents(teacher, "DAT250", student);
 
@@ -31,7 +31,7 @@ class NotificationApiTests extends ApiTestSupport {
 
     @Test
     void lateHandInNotifiesTeachersAndGivesStudentAReceipt() throws Exception {
-        TestUser teacher = registerAndLogin("notif-teacher2@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("notif-teacher2@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("notif-student2@hvl.no", "Sam Student");
         long courseId = courseWithStudents(teacher, "DAT250", student);
         long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
@@ -55,7 +55,7 @@ class NotificationApiTests extends ApiTestSupport {
 
     @Test
     void onTimeHandInDoesNotDisturbTeachers() throws Exception {
-        TestUser teacher = registerAndLogin("notif-teacher3@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("notif-teacher3@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("notif-student3@hvl.no", "Sam Student");
         long courseId = courseWithStudents(teacher, "DAT250", student);
         long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
@@ -76,7 +76,7 @@ class NotificationApiTests extends ApiTestSupport {
 
     @Test
     void studentsAreToldWhenGradesArePublished() throws Exception {
-        TestUser teacher = registerAndLogin("notif-teacher4@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("notif-teacher4@hvl.no", "Tina Teacher");
         TestUser anna = registerAndLogin("notif-anna4@hvl.no", "Anna");
         TestUser bob = registerAndLogin("notif-bob4@hvl.no", "Bob");
         long courseId = courseWithStudents(teacher, "DAT250", anna, bob);
@@ -110,7 +110,7 @@ class NotificationApiTests extends ApiTestSupport {
 
     @Test
     void notificationsCanBeMarkedReadAndArePrivate() throws Exception {
-        TestUser teacher = registerAndLogin("notif-teacher5@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("notif-teacher5@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("notif-student5@hvl.no", "Sam Student");
         courseWithStudents(teacher, "DAT250", student);
         String body = getAs(student, "/api/notifications").andReturn().getResponse().getContentAsString();

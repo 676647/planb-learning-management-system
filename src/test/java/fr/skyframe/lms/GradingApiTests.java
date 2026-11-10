@@ -14,7 +14,7 @@ class GradingApiTests extends ApiTestSupport {
 
     @Test
     void teacherGradesAndPublishes() throws Exception {
-        TestUser teacher = registerAndLogin("grading-teacher@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("grading-teacher@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("grading-student@hvl.no", "Sam Student");
         long courseId = courseWithStudents(teacher, "DAT250", student);
         long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """

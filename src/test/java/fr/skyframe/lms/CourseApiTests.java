@@ -16,7 +16,7 @@ class CourseApiTests extends ApiTestSupport {
 
     @Test
     void teacherCreatesCourseAndEnrollsStudent() throws Exception {
-        TestUser teacher = registerAndLogin("course-teacher@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("course-teacher@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("course-student@hvl.no", "Sam Student");
 
         // The logged-in user creates a course and becomes its teacher

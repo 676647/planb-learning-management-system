@@ -114,6 +114,10 @@ export const api = {
   me: () => get('/users/me'),
   myEnrollments: () => get('/users/me/enrollments'),
 
+  // admin only: who is a teacher (may create courses) or an admin
+  adminUsers: () => get('/admin/users'),
+  setAccountRole: (userId, role) => put(`/admin/users/${userId}/role`, { role }),
+
   // courses & participants
   createCourse: (course) => post('/courses', course),
   getCourse: (id) => get(`/courses/${id}`),

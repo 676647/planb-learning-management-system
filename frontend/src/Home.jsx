@@ -55,6 +55,7 @@ function Home() {
             user={currentUser}
             onLogout={logout}
             onSelectCourse={setActiveEnrollment}
+            onUserChanged={setCurrentUser}
         />
     )
 }

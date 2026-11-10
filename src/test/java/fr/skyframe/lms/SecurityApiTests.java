@@ -42,7 +42,7 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void studentsCannotAdministerTheCourse() throws Exception {
-        TestUser teacher = registerAndLogin("sec-teacher2@hvl.no", "Tara Teacher");
+        TestUser teacher = registerTeacher("sec-teacher2@hvl.no", "Tara Teacher");
         TestUser student = registerAndLogin("sec-student2@hvl.no", "Sid Student");
         registerAndLogin("sec-other2@hvl.no", "Olav Other");
         long courseId = courseWithStudents(teacher, "DAT250", student);
@@ -59,7 +59,7 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void outsidersCannotSeeInsideACourse() throws Exception {
-        TestUser teacher = registerAndLogin("sec-teacher3@hvl.no", "Tom Teacher");
+        TestUser teacher = registerTeacher("sec-teacher3@hvl.no", "Tom Teacher");
         TestUser outsider = registerAndLogin("sec-outsider3@hvl.no", "Ola Outsider");
         long courseId = courseWithStudents(teacher, "DAT251");
         long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
@@ -73,8 +73,8 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void teacherOfOneCourseIsOnlyAStudentElsewhere() throws Exception {
-        TestUser anna = registerAndLogin("sec-anna4@hvl.no", "Anna");
-        TestUser bob = registerAndLogin("sec-bob4@hvl.no", "Bob");
+        TestUser anna = registerTeacher("sec-anna4@hvl.no", "Anna");
+        TestUser bob = registerTeacher("sec-bob4@hvl.no", "Bob");
         long annasCourse = courseWithStudents(anna, "Anna's course", bob);
         long bobsCourse = courseWithStudents(bob, "Bob's course", anna);
 
@@ -85,7 +85,7 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void studentsOnlySeeVisibleContent() throws Exception {
-        TestUser teacher = registerAndLogin("sec-teacher5@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("sec-teacher5@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("sec-student5@hvl.no", "Sam Student");
         long courseId = courseWithStudents(teacher, "DAT250", student);
         long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
@@ -109,7 +109,7 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void studentsCannotSeeEachOthersWork() throws Exception {
-        TestUser teacher = registerAndLogin("sec-teacher6@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("sec-teacher6@hvl.no", "Tina Teacher");
         TestUser anna = registerAndLogin("sec-anna6@hvl.no", "Anna");
         TestUser bob = registerAndLogin("sec-bob6@hvl.no", "Bob");
         long courseId = courseWithStudents(teacher, "DAT250", anna, bob);
@@ -132,7 +132,7 @@ class SecurityApiTests extends ApiTestSupport {
 
     @Test
     void studentsCanJoinGroupsOnlyThemselves() throws Exception {
-        TestUser teacher = registerAndLogin("sec-teacher7@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("sec-teacher7@hvl.no", "Tina Teacher");
         TestUser anna = registerAndLogin("sec-anna7@hvl.no", "Anna");
         TestUser bob = registerAndLogin("sec-bob7@hvl.no", "Bob");
         long courseId = courseWithStudents(teacher, "DAT250", anna, bob);

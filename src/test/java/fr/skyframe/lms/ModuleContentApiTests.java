@@ -14,7 +14,7 @@ class ModuleContentApiTests extends ApiTestSupport {
 
     @Test
     void teacherBuildsCourseStructure() throws Exception {
-        TestUser teacher = registerAndLogin("modules-teacher@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("modules-teacher@hvl.no", "Tina Teacher");
         long courseId = courseWithStudents(teacher, "DAT250");
 
         long week1 = create(teacher, "/api/courses/" + courseId + "/modules", """
@@ -58,7 +58,7 @@ class ModuleContentApiTests extends ApiTestSupport {
 
     @Test
     void quizWithZeroAttemptsIsRejected() throws Exception {
-        TestUser teacher = registerAndLogin("modules-teacher2@hvl.no", "Tom Teacher");
+        TestUser teacher = registerTeacher("modules-teacher2@hvl.no", "Tom Teacher");
         long courseId = courseWithStudents(teacher, "DAT251");
         long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
                 {"title": "Only module"}

@@ -1,15 +1,29 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import '../Home.css'
 import { api } from '../api.js'
 import { useApiData } from '../useApiData.js'
 import Notifications from '../components/Notifications.jsx'
+import Admin from './Admin.jsx'
 
-export default function Dashboard({ user, onLogout, onSelectCourse }) {
+const ACCOUNT_BADGES = {
+    TEACHER: { label: 'Teacher', className: 'role-teacher' },
+    ADMIN: { label: 'Admin', className: 'role-admin' },
+}
+
+export default function Dashboard({ user, onLogout, onSelectCourse, onUserChanged }) {
     // The user's enrollments: each is { id, course, role }
     const fetchEnrollments = useCallback(() => api.myEnrollments(), [])
     const { data, error, loading: isLoading, reload } = useApiData(fetchEnrollments)
     const enrollments = data ?? []
     const [showCreate, setShowCreate] = useState(false)
+    const [showAdmin, setShowAdmin] = useState(false)
+    const canCreateCourses = user.accountRole === 'TEACHER' || user.accountRole === 'ADMIN'
+    const badge = ACCOUNT_BADGES[user.accountRole]
+
+    // Fetch the account again when the dashboard opens, so a role change shows without logging in again
+    useEffect(() => {
+        api.me().then(onUserChanged).catch(() => {})
+    }, [onUserChanged])
 
     const teaching = enrollments.filter(e => e.role === 'TEACHER')
     const studying = enrollments.filter(e => e.role === 'STUDENT')
@@ -19,18 +33,30 @@ export default function Dashboard({ user, onLogout, onSelectCourse }) {
 
             <header className="dashboard-header">
                 <h1>Welcome, {user.name}!</h1>
-                <button className="logout-btn" onClick={onLogout}>
-                    Sign out
-                </button>
+                <div className="header-actions">
+                    {badge && <span className={`role-badge account-badge ${badge.className}`}>{badge.label}</span>}
+                    {user.accountRole === 'ADMIN' && (
+                        <button className="btn-secondary" onClick={() => setShowAdmin(!showAdmin)}>
+                            {showAdmin ? 'Back to courses' : 'Admin'}
+                        </button>
+                    )}
+                    <button className="logout-btn" onClick={onLogout}>
+                        Sign out
+                    </button>
+                </div>
             </header>
+
+            {showAdmin ? <Admin user={user} /> : <>
 
             <Notifications enrollments={enrollments} onOpenCourse={onSelectCourse} />
 
             <div className="section-header">
                 <h2 className="section-title">Your classes</h2>
-                <button className="btn-small" onClick={() => setShowCreate(!showCreate)}>
-                    {showCreate ? 'Cancel' : '+ New course'}
-                </button>
+                {canCreateCourses && (
+                    <button className="btn-small" onClick={() => setShowCreate(!showCreate)}>
+                        {showCreate ? 'Cancel' : '+ New course'}
+                    </button>
+                )}
             </div>
 
             {showCreate && (
@@ -46,8 +72,8 @@ export default function Dashboard({ user, onLogout, onSelectCourse }) {
                 <p className="loading-text">Loading your courses…</p>
             ) : enrollments.length === 0 ? (
                 <p className="loading-text">
-                    You are not in any course yet. Create one, or ask a teacher to invite you
-                    using your e-mail address ({user.email}).
+                    You are not in any course yet.{canCreateCourses && ' Create one, or'}{' '}
+                    {canCreateCourses ? 'ask' : 'Ask'} a teacher to invite you using your e-mail address ({user.email}).
                 </p>
             ) : (
                 <>
@@ -55,6 +81,7 @@ export default function Dashboard({ user, onLogout, onSelectCourse }) {
                     <CourseGrid title="Studying" enrollments={studying} onSelectCourse={onSelectCourse} />
                 </>
             )}
+            </>}
         </div>
     )
 }

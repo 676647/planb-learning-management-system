@@ -29,8 +29,9 @@ public class CourseController {
         this.currentUser = currentUser;
     }
 
-    /** Any logged-in user can create a course and becomes its teacher. */
+    /** Teachers (and admins) can create a course, and become its teacher. */
     @PostMapping
+    @PreAuthorize("@access.canCreateCourses()")
     @ResponseStatus(HttpStatus.CREATED)
     public CourseResponse create(@Valid @RequestBody CourseRequest request) {
         return CourseResponse.from(courseService.create(

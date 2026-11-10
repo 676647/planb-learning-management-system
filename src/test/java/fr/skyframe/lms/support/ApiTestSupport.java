@@ -2,6 +2,8 @@ package fr.skyframe.lms.support;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.skyframe.lms.domain.AccountRole;
+import fr.skyframe.lms.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,6 +30,9 @@ public abstract class ApiTestSupport {
     @Autowired
     protected ObjectMapper json;
 
+    @Autowired
+    private UserRepository userRepository;
+
     /** A logged-in test user: the Authorization header value and the user's id. */
     public record TestUser(String auth, long id, String email) {
     }
@@ -42,6 +47,34 @@ public abstract class ApiTestSupport {
                         .content("""
                                 {"email": "%s", "password": "%s"}
                                 """.formatted(email, PASSWORD)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String auth = "Bearer " + json.readTree(body).get("accessToken").asText();
+        String me = mvc.perform(get("/api/users/me").header(HttpHeaders.AUTHORIZATION, auth))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return new TestUser(auth, json.readTree(me).get("id").asLong(), email);
+    }
+
+    /**
+     * A teacher, who may create courses. Made a teacher directly in the database,
+     * as if an admin had done it (AccountApiTests tests that through the admin API).
+     */
+    protected TestUser registerTeacher(String email, String name) throws Exception {
+        TestUser user = registerAndLogin(email, name);
+        userRepository.findById(user.id()).ifPresent(u -> {
+            u.setAccountRole(AccountRole.TEACHER);
+            userRepository.save(u);
+        });
+        return user;
+    }
+
+    /** Logs in with an existing account (e.g. the admin created on startup). */
+    protected TestUser login(String email, String password) throws Exception {
+        String body = mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email": "%s", "password": "%s"}
+                                """.formatted(email, password)))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String auth = "Bearer " + json.readTree(body).get("accessToken").asText();
@@ -78,7 +111,7 @@ public abstract class ApiTestSupport {
         return node.get("id").asLong();
     }
 
-    /** The teacher creates a course and enrolls the given students; returns the course id. */
+    /** The teacher (who must be a teacher, see registerTeacher) creates a course and enrolls the given students; returns the course id. */
     protected long courseWithStudents(TestUser teacher, String title, TestUser... students) throws Exception {
         long courseId = create(teacher, "/api/courses", """
                 {"title": "%s", "semester": "Autumn 2026"}

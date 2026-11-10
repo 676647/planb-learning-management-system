@@ -116,7 +116,7 @@ class FileSubmissionApiTests extends ApiTestSupport {
 
     /** A course with two students and one assignment. n keeps e-mails unique per test. */
     private Setup setUp(String n) throws Exception {
-        TestUser teacher = registerAndLogin("file-teacher" + n + "@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("file-teacher" + n + "@hvl.no", "Tina Teacher");
         TestUser anna = registerAndLogin("file-anna" + n + "@hvl.no", "Anna");
         TestUser bob = registerAndLogin("file-bob" + n + "@hvl.no", "Bob");
         long courseId = courseWithStudents(teacher, "DAT250", anna, bob);

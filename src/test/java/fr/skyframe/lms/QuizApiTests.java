@@ -21,7 +21,7 @@ class QuizApiTests extends ApiTestSupport {
     }
 
     private QuizSetup quizWithAllQuestionTypes(String n) throws Exception {
-        TestUser teacher = registerAndLogin("quiz-teacher" + n + "@hvl.no", "Tina Teacher");
+        TestUser teacher = registerTeacher("quiz-teacher" + n + "@hvl.no", "Tina Teacher");
         TestUser student = registerAndLogin("quiz-student" + n + "@hvl.no", "Sam Student");
         long courseId = courseWithStudents(teacher, "DAT250", student);
         long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
