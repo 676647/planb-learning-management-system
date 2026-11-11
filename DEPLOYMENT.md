@@ -14,6 +14,22 @@ the Maven and npm dependencies and the base images. Later builds reuse the cache
 an admin decides who is a teacher, on the **Admin** page. The first admin is created on startup: log in as `admin@lms.local` /
 `admin-password` (set `LMS_ADMIN_EMAIL` and `LMS_ADMIN_PASSWORD` to change it).
 
+**Test data.** On the first start, test users and courses from `src/main/resources/demo-data.json`
+are added (see `DemoDataLoader`). Everyone has the password `password123`:
+
+| Log in as | Who |
+|---|---|
+| `tina@lms.local` | teacher of DAT250 |
+| `lars@lms.local` | teacher of DAT251, co-teacher of DAT250 |
+| `anna@lms.local` | student in DAT250 and DAT251 |
+| `bjorn@`, `clara@`, `david@`, `eva@`, `fredrik@lms.local` | students |
+
+The courses have modules with pages, assignments, a coding exercise and quizzes with all four
+question types. "Friday live quiz" (DAT250, week 2) is hidden from students, ready to host as a live
+quiz. The data is only added once (not again on restarts). Edit the JSON file to change it; to load
+it again, start with an empty database (`docker compose down -v`). Set `DEMO_DATA=false` to start
+without it.
+
 Stop with `docker compose down`. Your data stays in Docker volumes; `docker compose down -v`
 deletes it as well.
 

@@ -1,0 +1,213 @@
+{
+  "_comment": [
+    "Test data, inserted on startup by DemoDataLoader when lms.demo-data.enabled=true (DEMO_DATA=true).",
+    "It is only inserted once: if the first user below already exists, nothing happens.",
+    "Everyone logs in with the password below. Dates are relative to the start-up day (deadlineInDays: 7 = in a week).",
+    "Items and questions have the same fields as the REST API (see api-requests.http), plus 'type' / 'kind'."
+  ],
+  "password": "password123",
+
+  "users": [
+    { "email": "tina@lms.local",    "name": "Tina Teacher",       "accountRole": "TEACHER" },
+    { "email": "lars@lms.local",    "name": "Lars Lektor",        "accountRole": "TEACHER" },
+    { "email": "anna@lms.local",    "name": "Anna Andersen" },
+    { "email": "bjorn@lms.local",   "name": "Bjørn Berg" },
+    { "email": "clara@lms.local",   "name": "Clara Christensen" },
+    { "email": "david@lms.local",   "name": "David Dahl" },
+    { "email": "eva@lms.local",     "name": "Eva Eide" },
+    { "email": "fredrik@lms.local", "name": "Fredrik Fjeld" }
+  ],
+
+  "courses": [
+    {
+      "title": "DAT250 Advanced Software Technologies",
+      "description": "Enterprise software with Spring Boot, JPA, messaging, NoSQL and cloud deployment.",
+      "semester": "Autumn 2026",
+      "teacher": "tina@lms.local",
+      "coTeachers": ["lars@lms.local"],
+      "students": ["anna@lms.local", "bjorn@lms.local", "clara@lms.local", "david@lms.local"],
+      "modules": [
+        {
+          "title": "Week 1: Introduction",
+          "items": [
+            {
+              "type": "page",
+              "title": "Welcome to DAT250",
+              "body": "Welcome! This course is about building modern enterprise software. Lectures are on Mondays and Thursdays, labs on Fridays. Start with the setup guide below."
+            },
+            {
+              "type": "page",
+              "title": "Setting up your environment",
+              "body": "Install Java 21, an IDE (IntelliJ IDEA is recommended), Git and Docker Desktop. Check with: java -version, git --version and docker compose version."
+            },
+            {
+              "type": "quiz",
+              "title": "Warm-up quiz",
+              "maxAttempts": 2,
+              "showHints": true,
+              "deadlineInDays": 7,
+              "questions": [
+                {
+                  "kind": "multiple-choice",
+                  "prompt": "Which of these are relational databases?",
+                  "options": ["PostgreSQL", "MongoDB", "H2", "RabbitMQ"],
+                  "correctOptions": [0, 2],
+                  "hint": "Think of tables and SQL."
+                },
+                {
+                  "kind": "ordering",
+                  "prompt": "Put the stages of a CI pipeline in order",
+                  "items": ["Compile", "Test", "Package", "Deploy"]
+                },
+                {
+                  "kind": "matching",
+                  "prompt": "Match each technology with what it does in the LMS",
+                  "pairs": [
+                    { "left": "JPA", "right": "Stores data in PostgreSQL" },
+                    { "left": "JWT", "right": "Proves who is logged in" },
+                    { "left": "RabbitMQ", "right": "Delivers domain events" }
+                  ]
+                },
+                {
+                  "kind": "fill-in-blanks",
+                  "prompt": "Fill in the blanks",
+                  "text": "Spring Boot runs on [[Java|the JVM]] and listens on port [[8080]] by default.",
+                  "points": 2
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Week 2: JPA and databases",
+          "items": [
+            {
+              "type": "page",
+              "title": "Lecture notes: JPA",
+              "body": "Entities, relationships (@OneToMany, @ManyToOne), inheritance strategies and repositories. Read chapter 3 before Thursday."
+            },
+            {
+              "type": "assignment",
+              "title": "Assignment 1: Domain model",
+              "description": "Model courses, modules and content as JPA entities. Hand in a PDF with your class diagram and a link to your repository.",
+              "deadlineInDays": 7,
+              "maxPoints": 10
+            },
+            {
+              "type": "quiz",
+              "title": "Friday live quiz",
+              "maxAttempts": 1,
+              "visibleFromInDays": 30,
+              "questions": [
+                {
+                  "kind": "multiple-choice",
+                  "prompt": "Which annotation marks a class as a JPA entity?",
+                  "options": ["@Table", "@Entity", "@Component", "@Repository"],
+                  "correctOptions": [1]
+                },
+                {
+                  "kind": "multiple-choice",
+                  "prompt": "Which inheritance strategy stores all subclasses in one table?",
+                  "options": ["JOINED", "TABLE_PER_CLASS", "SINGLE_TABLE", "MAPPED_SUPERCLASS"],
+                  "correctOptions": [2]
+                },
+                {
+                  "kind": "multiple-choice",
+                  "prompt": "What does a Spring Data repository save() return?",
+                  "options": ["Nothing", "The saved entity", "A boolean", "The number of rows"],
+                  "correctOptions": [1]
+                },
+                {
+                  "kind": "ordering",
+                  "prompt": "Order the layers from the browser to the database",
+                  "items": ["Controller", "Service", "Repository", "Database"]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Week 3: REST APIs",
+          "items": [
+            {
+              "type": "page",
+              "title": "Lecture notes: REST",
+              "body": "Resources, HTTP methods and status codes, DTOs and validation. Try the requests in api-requests.http."
+            },
+            {
+              "type": "coding-exercise",
+              "title": "Build a REST API",
+              "starterRepositoryUrl": "https://github.com/spring-guides/gs-rest-service",
+              "deadlineInDays": 14,
+              "maxPoints": 20
+            },
+            {
+              "type": "assignment",
+              "title": "Group project proposal",
+              "description": "One page describing your group's project idea, the technologies you plan to use and who does what.",
+              "deadlineInDays": 21,
+              "maxPoints": 5,
+              "groupWork": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "DAT251 Modern Software Development Methods",
+      "description": "Agile methods, testing and continuous delivery in practice.",
+      "semester": "Autumn 2026",
+      "teacher": "lars@lms.local",
+      "students": ["anna@lms.local", "clara@lms.local", "eva@lms.local", "fredrik@lms.local"],
+      "modules": [
+        {
+          "title": "Sprint 1: Agile basics",
+          "items": [
+            {
+              "type": "page",
+              "title": "What is Scrum?",
+              "body": "Roles (product owner, scrum master, developers), events (sprint planning, daily scrum, review, retrospective) and artifacts (backlogs and the increment)."
+            },
+            {
+              "type": "quiz",
+              "title": "Scrum check",
+              "maxAttempts": 3,
+              "showHints": true,
+              "questions": [
+                {
+                  "kind": "multiple-choice",
+                  "prompt": "Who decides the order of the product backlog?",
+                  "options": ["The scrum master", "The product owner", "The developers", "The customer"],
+                  "correctOptions": [1],
+                  "hint": "It's the person responsible for the value of the product."
+                },
+                {
+                  "kind": "matching",
+                  "prompt": "Match each event with its purpose",
+                  "pairs": [
+                    { "left": "Daily scrum", "right": "Plan the next 24 hours" },
+                    { "left": "Sprint review", "right": "Show the increment" },
+                    { "left": "Retrospective", "right": "Improve how the team works" }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Sprint 2: Testing",
+          "items": [
+            {
+              "type": "assignment",
+              "title": "Write unit tests",
+              "description": "Write JUnit tests for the kata in the starter project. Aim for 80 % line coverage and hand in a zip of your project.",
+              "deadlineInDays": 10,
+              "maxPoints": 10,
+              "lateSubmissionsAllowed": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
