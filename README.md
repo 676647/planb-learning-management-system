@@ -1,19 +1,7 @@
 # Learning Management System
 
-## Database
-
-The application uses PostgreSQL. Start the database locally with:
-
-```bash
-docker compose up -d postgres
-```
-
-By default, the application connects to `learning_management_system` on
-`localhost:5432` using the `postgres` user and password. Set
-`SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and
-`SPRING_DATASOURCE_PASSWORD` to use another PostgreSQL instance.
-
-
+## How to run
+docker compose up -d --build
 
 ## Getting started
 

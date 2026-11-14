@@ -1,71 +1,148 @@
-import React, { useState, useEffect } from 'react';
-import '../Home.css';
-import './Login.jsx';
-import { mockCourses } from '../data/mock.js';
-import './Course.jsx';
+import { useCallback, useEffect, useState } from 'react'
+import '../Home.css'
+import { api } from '../api.js'
+import { useApiData } from '../useApiData.js'
+import Notifications from '../components/Notifications.jsx'
+import Admin from './Admin.jsx'
+import { JoinLiveCard } from '../live/LiveEntry.jsx'
 
-export default function Dashboard({ user, onLogout, onSelectCourse }) {
-    const [courses, setCourses] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+const ACCOUNT_BADGES = {
+    TEACHER: { label: 'Teacher', className: 'role-teacher' },
+    ADMIN: { label: 'Admin', className: 'role-admin' },
+}
 
-//mock to have a course there
+export default function Dashboard({ user, onLogout, onSelectCourse, onUserChanged }) {
+    // The user's enrollments: each is { id, course, role }
+    const fetchEnrollments = useCallback(() => api.myEnrollments(), [])
+    const { data, error, loading: isLoading, reload } = useApiData(fetchEnrollments)
+    const enrollments = data ?? []
+    const [showCreate, setShowCreate] = useState(false)
+    const [showAdmin, setShowAdmin] = useState(false)
+    const canCreateCourses = user.accountRole === 'TEACHER' || user.accountRole === 'ADMIN'
+    const badge = ACCOUNT_BADGES[user.accountRole]
+
+    // Fetch the account again when the dashboard opens, so a role change shows without logging in again
     useEffect(() => {
-        setTimeout(() => {
-            setCourses(mockCourses);
-            setIsLoading(false);
-        }, 500); // 0.5 Sekunden Verzögerung
-    }, []);
+        api.me().then(onUserChanged).catch(() => {})
+    }, [onUserChanged])
 
-    /*
-    useEffect(() => {
-        const fetchCourses = async () => {
-            try {
-                // Holt die Kurse aus der Datenbank (über Spring Boot)
-                const response = await fetch('http://localhost:8080/api/courses');
-                if (response.ok) {
-                    const data = await response.json();
-                    setCourses(data);
-                }
-            } catch (error) {
-                console.error("Fehler beim Laden der Kurse:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchCourses();
-    }, []);
-    */
+    const teaching = enrollments.filter(e => e.role === 'TEACHER')
+    const studying = enrollments.filter(e => e.role === 'STUDENT')
 
     return (
         <div className="dashboard-container">
 
             <header className="dashboard-header">
-                <h1>Welcome, {user.username}!</h1>
-                <button className="logout-btn" onClick={onLogout}>
-                    Sign out
-                </button>
+                <h1>Welcome, {user.name}!</h1>
+                <div className="header-actions">
+                    {badge && <span className={`role-badge account-badge ${badge.className}`}>{badge.label}</span>}
+                    {user.accountRole === 'ADMIN' && (
+                        <button className="btn-secondary" onClick={() => setShowAdmin(!showAdmin)}>
+                            {showAdmin ? 'Back to courses' : 'Admin'}
+                        </button>
+                    )}
+                    <button className="logout-btn" onClick={onLogout}>
+                        Sign out
+                    </button>
+                </div>
             </header>
 
-            <h2 className="section-title">Your Classes</h2>
+            {showAdmin ? <Admin user={user} /> : <>
+
+            <Notifications enrollments={enrollments} onOpenCourse={onSelectCourse} />
+
+            <JoinLiveCard />
+
+            <div className="section-header">
+                <h2 className="section-title">Your classes</h2>
+                {canCreateCourses && (
+                    <button className="btn-small" onClick={() => setShowCreate(!showCreate)}>
+                        {showCreate ? 'Cancel' : '+ New course'}
+                    </button>
+                )}
+            </div>
+
+            {showCreate && (
+                <CreateCourseForm onCreated={() => {
+                    setShowCreate(false)
+                    reload()
+                }} />
+            )}
+
+            {error && <p className="form-error">{error}</p>}
 
             {isLoading ? (
-                <p className="loading-text">Courses will be snchronized with Database...</p>
-            ) : courses.length === 0 ? (
-                <p className="loading-text">No courses found.</p>
+                <p className="loading-text">Loading your courses…</p>
+            ) : enrollments.length === 0 ? (
+                <p className="loading-text">
+                    You are not in any course yet.{canCreateCourses && ' Create one, or'}{' '}
+                    {canCreateCourses ? 'ask' : 'Ask'} a teacher to invite you using your e-mail address ({user.email}).
+                </p>
             ) : (
-                <div className="course-grid">
-                    {courses.map(course => (
-                        <div key={course.id} className="course-card">
-                            <h3>{course.title}</h3>
-                            <p>Semester: {course.semester}</p>
-                            <button className="open-course-btn" onClick={() => onSelectCourse(course)}>
-                                open Course
-                            </button>
-                        </div>
-                    ))}
-                </div>
+                <>
+                    <CourseGrid title="Teaching" enrollments={teaching} onSelectCourse={onSelectCourse} />
+                    <CourseGrid title="Studying" enrollments={studying} onSelectCourse={onSelectCourse} />
+                </>
             )}
+            </>}
         </div>
-    );
+    )
+}
+
+function CourseGrid({ title, enrollments, onSelectCourse }) {
+    if (enrollments.length === 0) return null
+    return (
+        <section className="dashboard-section">
+            <h3 className="subsection-title">{title}</h3>
+            <div className="course-grid">
+                {enrollments.map(enrollment => (
+                    <div key={enrollment.id} className="course-card">
+                        <span className={`role-badge role-${enrollment.role.toLowerCase()}`}>
+                            {enrollment.role === 'TEACHER' ? 'Teacher' : 'Student'}
+                        </span>
+                        <h3>{enrollment.course.title}</h3>
+                        <p>
+                            {enrollment.course.semester && <>Semester: {enrollment.course.semester}<br /></>}
+                            {enrollment.course.description}
+                        </p>
+                        <button className="open-course-btn" onClick={() => onSelectCourse(enrollment)}>
+                            Open course
+                        </button>
+                    </div>
+                ))}
+            </div>
+        </section>
+    )
+}
+
+function CreateCourseForm({ onCreated }) {
+    const [title, setTitle] = useState('')
+    const [semester, setSemester] = useState('')
+    const [description, setDescription] = useState('')
+    const [error, setError] = useState('')
+
+    const submit = async (e) => {
+        e.preventDefault()
+        try {
+            await api.createCourse({ title, semester, description })
+            onCreated()
+        } catch (err) {
+            setError(err.message)
+        }
+    }
+
+    return (
+        <form className="inline-form card" onSubmit={submit}>
+            <h3>New course</h3>
+            <p className="hint">You will be the teacher of this course.</p>
+            <input className="auth-input" placeholder="Title, e.g. DAT250" value={title}
+                   onChange={e => setTitle(e.target.value)} required />
+            <input className="auth-input" placeholder="Semester, e.g. Autumn 2026" value={semester}
+                   onChange={e => setSemester(e.target.value)} />
+            <textarea className="auth-input" placeholder="Description" rows={3} value={description}
+                      onChange={e => setDescription(e.target.value)} />
+            {error && <p className="form-error">{error}</p>}
+            <button type="submit" className="btn-primary">Create course</button>
+        </form>
+    )
 }

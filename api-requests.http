@@ -1,0 +1,114 @@
+### Run these in IntelliJ, top to bottom: open this file and click the green ▶ next to each request.
+### Start the databases (docker compose up -d postgres mongo) and the app first.
+### Data is kept between restarts, so on a second run the registrations return 409 (already exists): just carry on with the logins.
+### The login requests save their token, so later requests can use {{teacher}} / {{student}}.
+
+### 1. Register a teacher and a student
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{"email": "teacher@hvl.no", "name": "Tina Teacher", "password": "secret-password"}
+
+###
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{"email": "student@hvl.no", "name": "Sam Student", "password": "secret-password"}
+
+### 2. Log in as both (saves the tokens)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"email": "teacher@hvl.no", "password": "secret-password"}
+
+> {% client.global.set("teacher", response.body.accessToken); %}
+
+###
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{"email": "student@hvl.no", "password": "secret-password"}
+
+> {% client.global.set("student", response.body.accessToken); %}
+
+### 3. Teacher creates course 1 (and becomes its teacher)
+POST http://localhost:8080/api/courses
+Authorization: Bearer {{teacher}}
+Content-Type: application/json
+
+{"title": "DAT250", "description": "Software technologies", "semester": "Autumn 2026"}
+
+### 4. Teacher invites the student
+POST http://localhost:8080/api/courses/1/enrollments
+Authorization: Bearer {{teacher}}
+Content-Type: application/json
+
+{"email": "student@hvl.no", "role": "STUDENT"}
+
+### 5. Modules
+POST http://localhost:8080/api/courses/1/modules
+Authorization: Bearer {{teacher}}
+Content-Type: application/json
+
+{"title": "Week 1: Introduction"}
+
+###
+GET http://localhost:8080/api/courses/1/modules
+Authorization: Bearer {{student}}
+
+### 6. Content: a page, and an assignment (id 2) worth 10 points
+POST http://localhost:8080/api/modules/1/pages
+Authorization: Bearer {{teacher}}
+Content-Type: application/json
+
+{"title": "Welcome", "body": "# Welcome to DAT250"}
+
+###
+POST http://localhost:8080/api/modules/1/assignments
+Authorization: Bearer {{teacher}}
+Content-Type: application/json
+
+{"title": "Hand-in 1", "description": "Upload your report", "deadline": "2099-01-01T00:00:00Z", "maxPoints": 10}
+
+### 7. The student sees the module's (visible) contents
+GET http://localhost:8080/api/modules/1/contents
+Authorization: Bearer {{student}}
+
+### 8. The student hands in (submission 1)
+POST http://localhost:8080/api/contents/2/submissions
+Authorization: Bearer {{student}}
+Content-Type: application/json
+
+{"answer": "https://git.app.uib.no/sam/hand-in-1"}
+
+### 9. The student tries to grade -> 403 Forbidden
+PUT http://localhost:8080/api/submissions/1/grade
+Authorization: Bearer {{student}}
+Content-Type: application/json
+
+{"points": 10}
+
+### 10. The teacher grades
+PUT http://localhost:8080/api/submissions/1/grade
+Authorization: Bearer {{teacher}}
+Content-Type: application/json
+
+{"points": 9, "feedback": "Clear and well structured"}
+
+### 11. Gradebook (teachers only)
+GET http://localhost:8080/api/courses/1/gradebook
+Authorization: Bearer {{teacher}}
+
+### 12. The student's own grades (hidden until published)
+GET http://localhost:8080/api/courses/1/my-grades
+Authorization: Bearer {{student}}
+
+### 13. Publish the grades, then run 12 again
+PUT http://localhost:8080/api/contents/2/grades-published
+Authorization: Bearer {{teacher}}
+Content-Type: application/json
+
+{"published": true}
+
+### 14. No token -> 401 Unauthorized
+GET http://localhost:8080/api/courses

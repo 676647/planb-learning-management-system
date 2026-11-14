@@ -1,114 +1,57 @@
-import React, { useState } from 'react';
-import '../Home.css';
+import { useState } from 'react'
+import '../Home.css'
+import CourseContent from '../components/CourseContent.jsx'
+import Participants from '../components/Participants.jsx'
+import Grades from '../components/Grades.jsx'
+import Groups from '../components/Groups.jsx'
+import { LiveBanner } from '../live/LiveEntry.jsx'
 
-export default function Course({ course, onBackToDashboard }) {
-    // Standardmäßig ist das erste Modul geöffnet
-    const [expandedModules, setExpandedModules] = useState({
-        [course.modules[0]?.id]: true
-    });
+const TABS = ['Course', 'Participants', 'Grades', 'Groups']
 
-    // Hilfsfunktion, um Module einzeln auf-/zuzuklappen
-    const toggleModule = (id) => {
-        setExpandedModules(prev => ({
-            ...prev,
-            [id]: !prev[id]
-        }));
-    };
-
-    // Funktion für "Alles einklappen" / "Alles ausklappen"
-    const toggleAll = (expand) => {
-        const updated = {};
-        if (expand) {
-            course.modules.forEach(m => { updated[m.id] = true; });
-        }
-        setExpandedModules(updated);
-    };
-
-    // Prüft, ob überhaupt Module existieren, um "Alles einklappen" anzuzeigen
-    const anyExpanded = Object.values(expandedModules).some(val => val === true);
-
-    // Icons
-    const getItemIcon = (type) => {
-        switch (type) {
-            case 'PAGE': return '📖';
-            case 'QUIZ': return '📝';
-            case 'ASSIGNMENT': return '📤';
-            case 'CODING': return '💻';
-            default: return '📄';
-        }
-    };
+/**
+ * One course. What you can do depends on your role in this course
+ * (roles are per course: you can teach one course and study in another).
+ */
+export default function Course({ enrollment, user, onBackToDashboard }) {
+    const { course, role } = enrollment
+    const isTeacher = role === 'TEACHER'
+    const [tab, setTab] = useState('Course')
 
     return (
         <div className="course-page-container">
-            {/* 1. Navigation Bar */}
             <nav className="top-nav-breadcrumbs">
-                <span onClick={onBackToDashboard} className="breadcrumb-link">Landing Page</span>
-                <span className="breadcrumb-divider">/</span>
                 <span onClick={onBackToDashboard} className="breadcrumb-link">Dashboard</span>
                 <span className="breadcrumb-divider">/</span>
-                <span className="breadcrumb-active">My Courses</span>
+                <span className="breadcrumb-active">{course.title}</span>
             </nav>
 
-            {/* 2. Headline */}
             <header className="course-header-section">
-                <h1 className="course-full-title">{course.title} ({course.semester})</h1>
+                <h1 className="course-full-title">
+                    {course.title}{course.semester && ` (${course.semester})`}
+                </h1>
+                {course.description && <p className="course-description">{course.description}</p>}
+                <span className={`role-badge role-${role.toLowerCase()}`}>
+                    You are {isTeacher ? 'a teacher' : 'a student'} in this course
+                </span>
             </header>
 
-            {/* 3. Tab-Menü (wie Moodle) */}
+            <LiveBanner course={course} user={user} />
+
             <div className="course-tabs-bar">
-                <button className="tab-item active">Course</button>
-                <button className="tab-item">Attendance</button>
-                <button className="tab-item">Grades</button>
-                <button className="tab-item">Badges</button>
-                <button className="tab-item">Other</button>
+                {TABS.map(name => (
+                    <button key={name} className={`tab-item ${tab === name ? 'active' : ''}`}
+                            onClick={() => setTab(name)}>
+                        {name}
+                    </button>
+                ))}
             </div>
 
             <div className="course-content-area">
-                {/* 4. Global collapse all */}
-                <div className="collapse-toggle-wrapper">
-                    {anyExpanded ? (
-                        <button onClick={() => toggleAll(false)} className="btn-toggle-all">Toggle All</button>
-                    ) : (
-                        <button onClick={() => toggleAll(true)} className="btn-toggle-all">See All</button>
-                    )}
-                </div>
-
-                {/* 5. Modul-Karten (Accordions) */}
-                <div className="modules-list">
-                    {course.modules.map((module) => {
-                        const isExpanded = !!expandedModules[module.id];
-                        return (
-                            <div key={module.id} className={`module-card ${isExpanded ? 'expanded' : ''}`}>
-                                {/* Header der Karte */}
-                                <div className="module-card-header" onClick={() => toggleModule(module.id)}>
-                                    <div className={`chevron-btn ${isExpanded ? 'rotate-down' : ''}`}>
-                                        ❯
-                                    </div>
-                                    <h2 className="module-title">{module.title}</h2>
-                                </div>
-
-                                {/* Inhalt der Karte (Aufgaben, Seiten) */}
-                                {isExpanded && (
-                                    <div className="module-card-body">
-                                        {module.items && module.items.length > 0 ? (
-                                            <ul className="module-items-list">
-                                                {module.items.map((item) => (
-                                                    <li key={item.id} className="module-item-row">
-                                                        <span className="item-icon">{getItemIcon(item.type)}</span>
-                                                        <span className="item-text-title">{item.title}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            <p className="no-items-text">No Information for this Module. </p>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+                {tab === 'Course' && <CourseContent course={course} isTeacher={isTeacher} />}
+                {tab === 'Participants' && <Participants course={course} isTeacher={isTeacher} user={user} />}
+                {tab === 'Grades' && <Grades course={course} isTeacher={isTeacher} />}
+                {tab === 'Groups' && <Groups course={course} isTeacher={isTeacher} user={user} />}
             </div>
         </div>
-    );
+    )
 }

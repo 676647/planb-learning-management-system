@@ -1,91 +1,87 @@
-import React, { useState } from 'react'; // useState Import hinzugefügt!
-import '../Home.css';
-import '../pages/Dashboard.jsx'
+import { useState } from 'react'
+import '../Home.css'
+import { api, setToken } from '../api.js'
 
-export default function Login({onLoginSuccess}) {
-    const [view, setView] = useState('INITIAL');
+export default function Login({ onLoginSuccess }) {
+    const [view, setView] = useState('INITIAL')
 
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('')
+    const [name, setName] = useState('')
+    const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const [busy, setBusy] = useState(false)
 
-    // Real API after Backend Implementation
-/*    const handleLogin = async (e) => {
-        e.preventDefault();
+    /** Log in, keep the token, then load who we are. */
+    const logIn = async () => {
+        const { accessToken } = await api.login(email, password)
+        setToken(accessToken)
+        onLoginSuccess(await api.me())
+    }
 
+    const handleLogin = async (e) => {
+        e.preventDefault()
+        setError('')
+        setBusy(true)
         try {
-            // Dies ruft dein Spring Boot Backend auf (Port 8080 ist Standard)
-            const response = await fetch('http://localhost:5173/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            if (response.ok) {
-                // Das Backend gibt die User-Daten zurück (z.B. Name und ID)
-                const userData = await response.json();
-
-                // Leitet den User zum Dashboard weiter!
-                onLoginSuccess(userData);
-            } else {
-                alert("Falscher Benutzername oder Passwort.");
-            }
-        } catch (error) {
-            console.error("Fehler bei der Verbindung zum Server:", error);
-            alert("Backend nicht erreichbar. Läuft Spring Boot?");
+            await logIn()
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setBusy(false)
         }
-    };
+    }
 
- */
-
-    //Mocking
-    const handleLogin = (e) => {
-        e.preventDefault();
-        console.log("Simulierter Login mit:", username);
-        onLoginSuccess({ username: username });
-    };
-
-    const handleRegister = (e) => {
-        e.preventDefault();
-        console.log("Registrierung mit:", username, password);
-        alert(`Account erstellt für: ${username}`);
-    };
+    /** Create the account, then log in straight away. */
+    const handleRegister = async (e) => {
+        e.preventDefault()
+        setError('')
+        setBusy(true)
+        try {
+            await api.register(email, name, password)
+            await logIn()
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setBusy(false)
+        }
+    }
 
     const resetFormAndGoBack = () => {
-        setUsername('');
-        setPassword('');
-        setView('INITIAL');
-    };
+        setEmail('')
+        setName('')
+        setPassword('')
+        setError('')
+        setView('INITIAL')
+    }
 
-    // HIER ist das einzige return, das die schöne auth-box ausgibt!
     return (
         <div className="auth-container">
             <div className="auth-box">
 
                 <h1 className="auth-title">Ideal LMS</h1>
 
-                {/* ANSICHT 1: Startbildschirm */}
                 {view === 'INITIAL' && (
                     <div className="auth-buttons">
-                        <p>Willkommen! Bitte wähle eine Option:</p>
+                        <p>Welcome! Please choose an option:</p>
                         <button className="btn-primary" onClick={() => setView('LOGIN')}>
-                            Login
+                            Log in
                         </button>
                         <button className="btn-secondary" onClick={() => setView('REGISTER')}>
-                            Create new Account
+                            Create new account
                         </button>
                     </div>
                 )}
 
-                {/* ANSICHT 2: Login-Formular */}
                 {view === 'LOGIN' && (
                     <form onSubmit={handleLogin} className="auth-form">
-                        <h2>Anmelden</h2>
+                        <h2>Log in</h2>
                         <input
-                            type="text"
-                            placeholder="Benutzername"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            type="email"
+                            placeholder="E-mail"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
+                            autoComplete="username"
                             className="auth-input"
                         />
                         <input
@@ -94,43 +90,61 @@ export default function Login({onLoginSuccess}) {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            autoComplete="current-password"
                             className="auth-input"
                         />
-                        <button type="submit" className="btn-primary">Einloggen</button>
+                        {error && <p className="form-error">{error}</p>}
+                        <button type="submit" className="btn-primary" disabled={busy}>
+                            {busy ? 'Logging in…' : 'Log in'}
+                        </button>
                         <button type="button" className="btn-text" onClick={resetFormAndGoBack}>
-                            ← Zurück
+                            ← Back
                         </button>
                     </form>
                 )}
 
-                {/* ANSICHT 3: Registrierungs-Formular */}
                 {view === 'REGISTER' && (
                     <form onSubmit={handleRegister} className="auth-form">
-                        <h2>Registrieren</h2>
+                        <h2>Create account</h2>
                         <input
                             type="text"
-                            placeholder="Gewünschter Benutzername"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Full name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             required
+                            autoComplete="name"
+                            className="auth-input"
+                        />
+                        <input
+                            type="email"
+                            placeholder="E-mail"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            autoComplete="email"
                             className="auth-input"
                         />
                         <input
                             type="password"
-                            placeholder="Passwort wählen"
+                            placeholder="Password (at least 8 characters)"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            minLength={8}
+                            autoComplete="new-password"
                             className="auth-input"
                         />
-                        <button type="submit" className="btn-secondary">Konto erstellen</button>
+                        {error && <p className="form-error">{error}</p>}
+                        <button type="submit" className="btn-secondary" disabled={busy}>
+                            {busy ? 'Creating account…' : 'Create account'}
+                        </button>
                         <button type="button" className="btn-text" onClick={resetFormAndGoBack}>
-                            ← Zurück
+                            ← Back
                         </button>
                     </form>
                 )}
 
             </div>
         </div>
-    );
+    )
 }
