@@ -37,7 +37,7 @@ Going deeper into the implementation, the system utilizes a polyglot persistence
 
 ## Development and Thought Process
 
-
+The developement process followed an iterative AI-assisted approach. Initially, we read and analysed the task description and identified the requirements and functionality. Then, we discussed how we wanted to solve the task at hand and used AI to generate the code and implement the features. Our next step was to review all the generated code and test the system. This process was repeated through multiple rounds of testing, with AI assisting in coding and debugging, as well as adding new features along the way, such as our Kahoot feature. Throughout the entire process, we maintained quality controll and assesed the AI-generated soulutions. We made our own decisions and used the AI to execute them.
 
 ## New Technology
 
@@ -52,3 +52,6 @@ The advantage of the WebSocket connection to the Kahoot quiz is the portal which
 
 
 ## AI Usage Reflection
+
+We used AI to generate all of the code as well as some debugging, as we agreed it would be most efficient. To quality assure the code we generated we reviewed and tested the code in several iterations.
+AI models? Versions?
