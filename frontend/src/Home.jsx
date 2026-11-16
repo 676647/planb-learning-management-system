@@ -80,6 +80,7 @@ function Home() {
                     enrollment={activeEnrollment}
                     user={currentUser}
                     onBackToDashboard={() => setActiveEnrollment(null)}
+                    onLogout={logout}
                 />
             ) : (
                 <Dashboard

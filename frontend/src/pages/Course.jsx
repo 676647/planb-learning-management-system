@@ -12,7 +12,7 @@ const TABS = ['Course', 'Participants', 'Grades', 'Groups']
  * One course. What you can do depends on your role in this course
  * (roles are per course: you can teach one course and study in another).
  */
-export default function Course({ enrollment, user, onBackToDashboard }) {
+export default function Course({ enrollment, user, onBackToDashboard, onLogout }) {
     const { course, role } = enrollment
     const isTeacher = role === 'TEACHER'
     const [tab, setTab] = useState('Course')
@@ -23,6 +23,10 @@ export default function Course({ enrollment, user, onBackToDashboard }) {
                 <span onClick={onBackToDashboard} className="breadcrumb-link">Dashboard</span>
                 <span className="breadcrumb-divider">/</span>
                 <span className="breadcrumb-active">{course.title}</span>
+                <span className="nav-account">
+                    <span className="nav-user">{user.name}</span>
+                    <button className="logout-btn small" onClick={onLogout}>Sign out</button>
+                </span>
             </nav>
 
             <header className="course-header-section">

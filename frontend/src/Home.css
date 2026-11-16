@@ -641,6 +641,10 @@
 .inline-form.row .auth-input { flex: 1; }
 .inline-form textarea { font-family: inherit; resize: vertical; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+/* Date and time fields: at least 260px wide, two per row on a wide screen, one on a phone */
+.date-grid { grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+.date-grid .auth-input { width: 100%; padding-left: 10px; padding-right: 8px; }
+@media (max-width: 640px) { .date-grid .auth-input { font-size: 0.85rem; padding-left: 8px; padding-right: 6px; } }
 .form-grid label, .checkbox-row label { font-size: 0.85rem; color: #475569; display: flex; flex-direction: column; gap: 4px; }
 .checkbox-row { display: flex; flex-wrap: wrap; gap: 16px; }
 .checkbox-row label { flex-direction: row; align-items: center; gap: 6px; }
@@ -781,3 +785,9 @@
   .inline-form.row { flex-direction: column; align-items: stretch; }
   .course-card { max-width: none; }
 }
+
+/* Sign out on the course page: at the right end of the breadcrumb bar */
+.top-nav-breadcrumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+.nav-account { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.nav-user { color: #64748b; font-size: 0.9rem; }
+.logout-btn.small { padding: 6px 14px; font-size: 0.9rem; }

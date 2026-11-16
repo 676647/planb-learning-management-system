@@ -75,26 +75,31 @@ export default function AddContentForm({ moduleId, onAdded, onCancel }) {
                        value={fields.starterRepositoryUrl} onChange={set('starterRepositoryUrl')} />
             )}
 
-            <div className="form-grid">
+            {/* Dates get their own, wider row: date and time don't fit in a narrow field */}
+            <div className="form-grid date-grid">
                 <label>Visible from (optional)
                     <input type="datetime-local" className="auth-input" value={fields.visibleFrom} onChange={set('visibleFrom')} />
                 </label>
                 {graded && (
-                    <>
-                        <label>Deadline (optional)
-                            <input type="datetime-local" className="auth-input" value={fields.deadline} onChange={set('deadline')} />
-                        </label>
-                        <label>Max points (optional)
-                            <input type="number" min="0" className="auth-input" value={fields.maxPoints} onChange={set('maxPoints')} />
-                        </label>
-                    </>
-                )}
-                {type === 'QUIZ' && (
-                    <label>Attempts allowed
-                        <input type="number" min="1" className="auth-input" value={fields.maxAttempts} onChange={set('maxAttempts')} required />
+                    <label>Deadline (optional)
+                        <input type="datetime-local" className="auth-input" value={fields.deadline} onChange={set('deadline')} />
                     </label>
                 )}
             </div>
+            {(graded || type === 'QUIZ') && (
+                <div className="form-grid">
+                    {graded && (
+                        <label>Max points (optional)
+                            <input type="number" min="0" className="auth-input" value={fields.maxPoints} onChange={set('maxPoints')} />
+                        </label>
+                    )}
+                    {type === 'QUIZ' && (
+                        <label>Attempts allowed
+                            <input type="number" min="1" className="auth-input" value={fields.maxAttempts} onChange={set('maxAttempts')} required />
+                        </label>
+                    )}
+                </div>
+            )}
 
             <div className="checkbox-row">
                 {graded && (
