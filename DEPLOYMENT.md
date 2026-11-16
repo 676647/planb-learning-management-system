@@ -47,13 +47,13 @@ deletes it as well.
          └─────────┘            └─────────┘──► rabbitmq (domain events)
 ```
 
-| Service | Image | Purpose |
-|---|---|---|
+| Service | Image                            | Purpose |
+|---|----------------------------------|---|
 | `web` | built from `frontend/Dockerfile` | nginx serving the built React app; forwards `/api/*` to `backend` |
-| `backend` | built from `Dockerfile` | Spring Boot REST API |
-| `postgres` | `postgres:17` | relational database |
-| `mongo` | `mongo:7.0` | NoSQL store for uploaded files (GridFS). Not 8.0: it refuses to start on the Linux kernel used by newer Docker Desktop versions (MongoDB issue SERVER-121912) |
-| `rabbitmq` | `rabbitmq:4-management` | message broker for domain events |
+| `backend` | built from `Dockerfile`          | Spring Boot REST API |
+| `postgres` | `postgres:17`                    | relational database |
+| `mongo` | `mongo:9.0`                      | NoSQL store for uploaded files (GridFS). |
+| `rabbitmq` | `rabbitmq:4-management`          | message broker for domain events |
 
 How it fits together:
 
