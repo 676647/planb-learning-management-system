@@ -16,7 +16,7 @@ Another advantage of this architecture is the Maintainability and opportunity to
 Going deeper into the implementation, the diagram above container through its different tiers even better. The presentation tier describes a single page application, with react as its technical component.
 This tier is communication with REST APIs (especially /api/* and /api/ws) and JSON Web token for the authentication. 
 This tier is running in a ngnix container on port 8080, which is described as web in the program. 
-The frontend tier has no direct connection to the database and works stateless with Baerer tokens.
+The frontend tier has no direct connection to the database and works stateless with Bearer tokens.
 
 The second layer, known as the logic tier, works on Java and Spring Boot application. The components are saved in the fr.skyframe.lms folder. 
 This tier has the global roles (STUDENT, TEACHER, ADMIN) to divide the access on the webPage in Course-Bound Role-Based Access Control. 
@@ -43,7 +43,7 @@ For this layer, WebSockets are the Messaging tool to experience real-time answer
 | | | |
 | Backend          | Spring Boot and Java 21          | Framework with Rest-API | - reduce configuration effort - provides out-of-box modules for security and data access - strong domain modeling
 | | | |
-| Security           | Spring Security            | Stateless Authentication and RBAC    | - Secure endpoints - using barer token for the sever-side validation
+| Security           | Spring Security            | Stateless Authentication and RBAC    | - Secure endpoints - using bearer token for the sever-side validation
 |      |      |                              |            | Real-Time | WebSockets | Server-Push Live Channel | - for low-latency live quiz broadcasts - uses spring-Boot-starter-websocket and @stomp
 | | | |
 | Database         | PostgreSQL                 | Relational Database          | - for structure entities like courses, students, teachers and more - enforces referential integrity - ACID transactions
@@ -79,7 +79,7 @@ For the point calculation we used LiveScoring based on speed and right answers.
 
 ## Known limitations, bugs and shortcomings 
 
-If we need a server restart during running the system, the live games will be annulated. We only have one backend instance, so only one live quiz can be active at the same time in a course.
+If we need a server restart during running the system, the live games will be annulled. We only have one backend instance, so only one live quiz can be active at the same time in a course.
 Another shortcut we have, is that only the administrator can put the roles on every user.
 The teacher now has to create every course and can't get it out of a database yet.
 Another shortcut we have is, that the whole system is running local, so Students created on one device are not on another device until we have a commit.
