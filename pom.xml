@@ -14,7 +14,7 @@
     <groupId>fr.skyframe</groupId>
     <artifactId>learningManagementSystem</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>myapp</name>
+    <name>learning-management-system</name>
 
     <properties>
         <java.version>21</java.version>
@@ -79,7 +79,7 @@
     </dependencies>
 
     <build>
-        <finalName>myapp</finalName>
+        <finalName>learning-management-system</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

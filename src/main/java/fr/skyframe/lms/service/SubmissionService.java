@@ -78,7 +78,11 @@ public class SubmissionService {
         Long courseId = item.getModule().getCourse().getId();
         User student = userService.get(studentId);
 
-        if (!enrollments.existsByUserIdAndCourseIdAndRole(studentId, courseId, Role.STUDENT)) {
+        // Locks the student's enrollment row until this transaction ends, so two hand-ins by the same
+        // student are checked one after the other. Without it, simultaneous quiz attempts could all pass
+        // the attempt limit below before any of them is saved.
+        Enrollment enrollment = enrollments.lockByUserIdAndCourseId(studentId, courseId).orElse(null);
+        if (enrollment == null || enrollment.getRole() != Role.STUDENT) {
             throw new ForbiddenException("Only students of course " + courseId + " can submit");
         }
         Instant now = clock.instant();

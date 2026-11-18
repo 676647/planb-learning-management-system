@@ -69,8 +69,8 @@ services:
     restart: unless-stopped
 
   # MongoDB: the NoSQL store; uploaded files are kept in its GridFS
-  # Version 7.0 on purpose: MongoDB 8.0 refuses to start on Linux kernel 6.19+ (SERVER-121912),
-  # which newer Docker Desktop versions use. 7.0 is not affected; the app works the same on both.
+  # Version 9.0 on purpose: MongoDB 8.0 refuses to start on Linux kernel 6.19+ (SERVER-121912),
+  # which newer Docker Desktop versions use. 9.0 is not affected.
   mongo:
     image: mongo:9.0
     ports:

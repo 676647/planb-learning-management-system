@@ -75,4 +75,48 @@ class GradingApiTests extends ApiTestSupport {
         getAs(student, "/api/submissions/" + submissionId + "/grade")
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void joiningAGroupLaterGivesNoAccessToItsEarlierWork() throws Exception {
+        TestUser teacher = registerTeacher("late-joiner-teacher@hvl.no", "Tina Teacher");
+        TestUser anna = registerAndLogin("late-joiner-anna@hvl.no", "Anna");
+        TestUser bob = registerAndLogin("late-joiner-bob@hvl.no", "Bob");
+        long courseId = courseWithStudents(teacher, "DAT250", anna, bob);
+        long moduleId = create(teacher, "/api/courses/" + courseId + "/modules", """
+                {"title": "Week 1"}
+                """);
+        long projectId = create(teacher, "/api/modules/" + moduleId + "/assignments", """
+                {"title": "Group project", "deadline": "2099-01-01T00:00:00Z", "maxPoints": 10, "groupWork": true}
+                """);
+        long groupId = create(teacher, "/api/courses/" + courseId + "/groups", """
+                {"name": "Group 1"}
+                """);
+        postJson(anna, "/api/groups/" + groupId + "/members", """
+                {"email": "late-joiner-anna@hvl.no"}
+                """).andExpect(status().isOk());
+        long submissionId = create(anna, "/api/contents/" + projectId + "/submissions", """
+                {"answer": "our repo"}
+                """);
+        putJson(teacher, "/api/submissions/" + submissionId + "/grade", """
+                {"points": 10, "feedback": "Excellent"}
+                """).andExpect(status().isOk());
+        putJson(teacher, "/api/contents/" + projectId + "/grades-published", """
+                {"published": true}
+                """).andExpect(status().isOk());
+
+        // Bob joins the group after it handed in and was graded
+        postJson(bob, "/api/groups/" + groupId + "/members", """
+                {"email": "late-joiner-bob@hvl.no"}
+                """).andExpect(status().isOk());
+
+        getAs(bob, "/api/submissions/" + submissionId).andExpect(status().isForbidden());
+        getAs(bob, "/api/submissions/" + submissionId + "/grade").andExpect(status().isForbidden());
+        getAs(bob, "/api/courses/" + courseId + "/my-grades")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].status").value("NOT_SUBMITTED"))
+                .andExpect(jsonPath("$[0].points").doesNotExist());
+        getAs(anna, "/api/submissions/" + submissionId + "/grade")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.points").value(10.0));
+    }
 }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,15 +37,17 @@ public class NotificationService {
     private final StudentGroupRepository groups;
     private final UserService userService;
     private final GradingService gradingService;
+    private final Clock clock;
 
     public NotificationService(NotificationRepository notifications, EnrollmentRepository enrollments,
                                StudentGroupRepository groups, UserService userService,
-                               GradingService gradingService) {
+                               GradingService gradingService, Clock clock) {
         this.notifications = notifications;
         this.enrollments = enrollments;
         this.groups = groups;
         this.userService = userService;
         this.gradingService = gradingService;
+        this.clock = clock;
     }
 
     /**
@@ -125,7 +127,7 @@ public class NotificationService {
         n.setMessage(message);
         n.setCourseId(courseId);
         n.setContentId(contentId);
-        n.setCreatedAt(Instant.now());
+        n.setCreatedAt(clock.instant());
         notifications.save(n);
     }
 

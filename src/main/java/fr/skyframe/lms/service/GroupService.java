@@ -77,6 +77,11 @@ public class GroupService {
         return group;
     }
 
+    /** Takes the user out of their group in the course, if they are in one (e.g. when they leave the course). */
+    public void leaveGroupIn(Long courseId, Long userId) {
+        groupOf(courseId, userId).ifPresent(group -> group.getMembers().removeIf(m -> m.getId().equals(userId)));
+    }
+
     /** Called by CourseService when a course is deleted (after its submissions are gone). */
     public void deleteAllOfCourse(Long courseId) {
         for (StudentGroup group : groups.findByCourseId(courseId)) {

@@ -11,7 +11,7 @@ import fr.skyframe.lms.repository.EnrollmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,16 +29,18 @@ public class CourseService {
     private final ModuleService moduleService;
     private final GroupService groupService;
     private final ApplicationEventPublisher events;
+    private final Clock clock;
 
     public CourseService(CourseRepository courses, EnrollmentRepository enrollments,
                          UserService userService, ModuleService moduleService, GroupService groupService,
-                         ApplicationEventPublisher events) {
+                         ApplicationEventPublisher events, Clock clock) {
         this.courses = courses;
         this.enrollments = enrollments;
         this.userService = userService;
         this.moduleService = moduleService;
         this.groupService = groupService;
         this.events = events;
+        this.clock = clock;
     }
 
     /** Creates a course and enrolls the creator as its teacher. */
@@ -87,7 +89,7 @@ public class CourseService {
         Course course = get(courseId);
         User user = userService.getByEmail(email);
         Enrollment enrollment = enroll(user, course, role);
-        events.publishEvent(new UserEnrolled(UUID.randomUUID(), Instant.now(),
+        events.publishEvent(new UserEnrolled(UUID.randomUUID(), clock.instant(),
                 course.getId(), course.getTitle(), user.getId(), role));
         return enrollment;
     }
@@ -104,9 +106,18 @@ public class CourseService {
         return enrollments.findByUserId(userId);
     }
 
+    /**
+     * Removes a user from a course, and from their group in it. The last teacher can't be removed,
+     * because nobody could manage the course after that; add another teacher first or delete the course.
+     */
     public void unenroll(Long courseId, Long userId) {
         Enrollment enrollment = enrollments.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new NotFoundException("User " + userId + " is not enrolled in course " + courseId));
+        if (enrollment.getRole() == Role.TEACHER && enrollments.countByCourseIdAndRole(courseId, Role.TEACHER) <= 1) {
+            throw new ConflictException("The last teacher can't leave course " + courseId
+                    + "; add another teacher first, or delete the course");
+        }
+        groupService.leaveGroupIn(courseId, userId);
         enrollments.delete(enrollment);
     }
 

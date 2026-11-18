@@ -135,6 +135,11 @@ public class CourseAccess {
         return currentUser.id().equals(userId);
     }
 
+    /** Users may look up themselves and people they share a course with; admins may look up anyone. */
+    public boolean canSeeUser(Long userId) {
+        return isMe(userId) || isAdmin() || enrollments.shareACourse(currentUser.id(), userId);
+    }
+
     public boolean isMyEmail(String email) {
         return email != null && currentUser.get().getEmail().equalsIgnoreCase(email.trim());
     }

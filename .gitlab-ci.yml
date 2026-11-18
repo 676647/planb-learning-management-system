@@ -3,7 +3,7 @@ image: maven:3.9-eclipse-temurin-21
 variables:
   MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
 
-# Cacht Maven-Abhängigkeiten, damit der Build schneller geht
+# Cache Maven dependencies between jobs so builds are faster
 cache:
   paths:
     - .m2/repository/

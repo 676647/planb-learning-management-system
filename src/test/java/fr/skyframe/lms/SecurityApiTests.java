@@ -147,4 +147,18 @@ class SecurityApiTests extends ApiTestSupport {
                 {"email": "sec-bob7@hvl.no"}
                 """).andExpect(status().isForbidden());
     }
+
+    @Test
+    void usersCanOnlyLookUpPeopleTheyShareACourseWith() throws Exception {
+        TestUser teacher = registerTeacher("sec-teacher-lookup@hvl.no", "Tara Teacher");
+        TestUser student = registerAndLogin("sec-student-lookup@hvl.no", "Sid Student");
+        TestUser outsider = registerAndLogin("sec-outsider-lookup@hvl.no", "Olav Outsider");
+        courseWithStudents(teacher, "DAT250", student);
+
+        getAs(student, "/api/users/" + student.id()).andExpect(status().isOk());
+        getAs(student, "/api/users/" + teacher.id()).andExpect(status().isOk());
+        getAs(teacher, "/api/users/" + student.id()).andExpect(status().isOk());
+        getAs(outsider, "/api/users/" + student.id()).andExpect(status().isForbidden());
+        getAs(student, "/api/users/" + outsider.id()).andExpect(status().isForbidden());
+    }
 }

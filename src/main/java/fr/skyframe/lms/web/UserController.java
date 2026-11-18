@@ -5,6 +5,7 @@ import fr.skyframe.lms.service.CourseService;
 import fr.skyframe.lms.service.UserService;
 import fr.skyframe.lms.web.dto.EnrollmentResponse;
 import fr.skyframe.lms.web.dto.UserResponse;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,8 +37,12 @@ public class UserController {
         return courseService.coursesOfUser(currentUser.id()).stream().map(EnrollmentResponse::from).toList();
     }
 
-    /** Name and e-mail of any user (e.g. to show who is in a course). */
+    /**
+     * Name and e-mail of a user: yourself, or someone in one of your courses (admins: anyone).
+     * Other users get 403, so e-mail addresses can't be collected by trying every id.
+     */
     @GetMapping("/{id}")
+    @PreAuthorize("@access.canSeeUser(#id)")
     public UserResponse get(@PathVariable Long id) {
         return UserResponse.from(userService.get(id));
     }

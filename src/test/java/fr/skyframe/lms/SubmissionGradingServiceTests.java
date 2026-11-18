@@ -188,6 +188,39 @@ class SubmissionGradingServiceTests {
     }
 
     @Test
+    void studentWhoJoinsAGroupLaterGetsNoCreditForEarlierWork() {
+        Assignment project = assignment("Group project", FRIDAY_23_59, false, true);
+        StudentGroup group = groupService.create(course.getId(), "Group 1");
+        groupService.addMember(group.getId(), "anna@hvl.no");
+        Submission s = submissionService.submit(project.getId(), anna.getId(), "our repo");
+        gradingService.grade(s.getId(), teacher.getId(), 9, null);
+
+        groupService.addMember(group.getId(), "carl@hvl.no");
+
+        assertThat(s.countsFor(carl.getId())).isFalse();
+        Gradebook book = gradingService.gradebook(course.getId());
+        assertThat(entry(book, carl, project).status()).isEqualTo(Gradebook.Status.NOT_SUBMITTED);
+        assertThat(entry(book, anna, project).points()).isEqualTo(9.0);
+    }
+
+    @Test
+    void studentWhoLeavesAGroupKeepsCreditForItsEarlierWork() {
+        Assignment project = assignment("Group project", FRIDAY_23_59, false, true);
+        StudentGroup group = groupService.create(course.getId(), "Group 1");
+        groupService.addMember(group.getId(), "anna@hvl.no");
+        groupService.addMember(group.getId(), "bob@hvl.no");
+        Submission s = submissionService.submit(project.getId(), anna.getId(), "our repo");
+        gradingService.grade(s.getId(), teacher.getId(), 7, null);
+
+        groupService.removeMember(group.getId(), bob.getId());
+        groupService.removeMember(group.getId(), anna.getId());
+
+        Gradebook book = gradingService.gradebook(course.getId());
+        assertThat(entry(book, bob, project).points()).isEqualTo(7.0);
+        assertThat(entry(book, anna, project).points()).isEqualTo(7.0);
+    }
+
+    @Test
     void onlyTeachersCanGrade() {
         Assignment a = assignment("Hand-in 1", FRIDAY_23_59, false, false);
         Submission s = submissionService.submit(a.getId(), anna.getId(), "report");

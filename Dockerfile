@@ -15,7 +15,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 # Don't run as root inside the container
 RUN groupadd --system app && useradd --system --gid app app
-COPY --from=build /app/target/myapp.jar app.jar
+COPY --from=build /app/target/learning-management-system.jar app.jar
 USER app
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

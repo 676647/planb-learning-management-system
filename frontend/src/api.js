@@ -104,7 +104,8 @@ async function download(path, filename) {
   document.body.appendChild(link)
   link.click()
   link.remove()
-  URL.revokeObjectURL(url)
+  // Revoked a moment later: revoking right after click() can cancel the download (e.g. in Firefox)
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 const get = (path) => request('GET', path)

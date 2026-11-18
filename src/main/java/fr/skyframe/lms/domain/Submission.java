@@ -3,12 +3,15 @@ package fr.skyframe.lms.domain;
 import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Something a student handed in for a quiz, coding exercise or assignment.
  *
- * For group work, {@code group} is set and the submission counts for every member of the
- * group; {@code submittedBy} records which member actually handed it in.
+ * For group work, {@code group} is set and the submission counts for the students who were in
+ * the group when it was handed in ({@code groupMembers}); {@code submittedBy} records which
+ * member actually handed it in.
  * Students may submit several times; the latest submission is the one that counts.
  */
 @Entity
@@ -31,6 +34,17 @@ public class Submission {
     @JoinColumn(name = "group_id")
     private StudentGroup group;
 
+    /**
+     * The group's members at the moment of hand-in (empty for individual work). The submission counts
+     * for exactly these students: joining the group later gives no credit for earlier work, and
+     * leaving it doesn't take credit away.
+     */
+    @ManyToMany
+    @JoinTable(name = "submission_group_members",
+            joinColumns = @JoinColumn(name = "submission_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> groupMembers = new HashSet<>();
+
     @Column(nullable = false)
     private Instant submittedAt;
 
@@ -48,7 +62,16 @@ public class Submission {
 
     /** True if this submission counts for the given student (as submitter or as group member). */
     public boolean countsFor(Long userId) {
-        return group != null ? group.hasMember(userId) : submittedBy.getId().equals(userId);
+        if (submittedBy.getId().equals(userId)) {
+            return true;
+        }
+        if (group == null) {
+            return false;
+        }
+        // Group submissions saved before members were recorded have none; for those the current group decides
+        return groupMembers.isEmpty()
+                ? group.hasMember(userId)
+                : groupMembers.stream().anyMatch(m -> m.getId().equals(userId));
     }
 
     public Long getId() {
@@ -79,8 +102,14 @@ public class Submission {
         return group;
     }
 
+    /** Sets the group and records its current members as the students this submission counts for. */
     public void setGroup(StudentGroup group) {
         this.group = group;
+        this.groupMembers = group == null ? new HashSet<>() : new HashSet<>(group.getMembers());
+    }
+
+    public Set<User> getGroupMembers() {
+        return groupMembers;
     }
 
     public Instant getSubmittedAt() {

@@ -5,4 +5,12 @@ data/
 .vscode/
 *.iml
 .DS_Store
-.src/main/resources/application-local.properties
+# Local settings with real credentials: never commit them
+src/main/resources/application-local.properties
+
+# Build output (IntelliJ compiles to out/)
+out/
+
+# Frontend dependencies and build output
+node_modules/
+frontend/dist/

@@ -3,9 +3,11 @@ package fr.skyframe.lms;
 import fr.skyframe.lms.domain.Course;
 import fr.skyframe.lms.domain.Enrollment;
 import fr.skyframe.lms.domain.Role;
+import fr.skyframe.lms.domain.StudentGroup;
 import fr.skyframe.lms.domain.User;
 import fr.skyframe.lms.service.ConflictException;
 import fr.skyframe.lms.service.CourseService;
+import fr.skyframe.lms.service.GroupService;
 import fr.skyframe.lms.service.NotFoundException;
 import fr.skyframe.lms.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,9 @@ class CourseServiceTests {
 
     @Autowired
     CourseService courseService;
+
+    @Autowired
+    GroupService groupService;
 
     @Test
     void creatorBecomesTeacherOfNewCourse() {
@@ -106,5 +111,44 @@ class CourseServiceTests {
 
         assertThatThrownBy(() -> courseService.enroll(course.getId(), "nobody@hvl.no", Role.STUDENT))
                 .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void lastTeacherCannotLeaveTheCourse() {
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
+        Course course = courseService.create(teacher.getId(), "DAT250", null, "Autumn 2026");
+
+        assertThatThrownBy(() -> courseService.unenroll(course.getId(), teacher.getId()))
+                .isInstanceOf(ConflictException.class);
+        assertThat(courseService.participants(course.getId())).hasSize(1);
+    }
+
+    @Test
+    void teacherCanLeaveWhenAnotherTeacherRemains() {
+        User tina = userService.register("tina@hvl.no", "Tina Teacher", "secret-password");
+        userService.register("lars@hvl.no", "Lars Lektor", "secret-password");
+        Course course = courseService.create(tina.getId(), "DAT250", null, "Autumn 2026");
+        courseService.enroll(course.getId(), "lars@hvl.no", Role.TEACHER);
+
+        courseService.unenroll(course.getId(), tina.getId());
+
+        List<Enrollment> participants = courseService.participants(course.getId());
+        assertThat(participants).hasSize(1);
+        assertThat(participants.get(0).getUser().getEmail()).isEqualTo("lars@hvl.no");
+    }
+
+    @Test
+    void leavingTheCourseAlsoLeavesTheGroup() {
+        User teacher = userService.register("teacher@hvl.no", "Tina Teacher", "secret-password");
+        User student = userService.register("student@hvl.no", "Sam Student", "secret-password");
+        Course course = courseService.create(teacher.getId(), "DAT250", null, "Autumn 2026");
+        courseService.enroll(course.getId(), "student@hvl.no", Role.STUDENT);
+        StudentGroup group = groupService.create(course.getId(), "Group 1");
+        groupService.addMember(group.getId(), "student@hvl.no");
+
+        courseService.unenroll(course.getId(), student.getId());
+
+        assertThat(group.hasMember(student.getId())).isFalse();
+        assertThat(groupService.groupOf(course.getId(), student.getId())).isEmpty();
     }
 }
